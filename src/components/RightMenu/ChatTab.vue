@@ -101,7 +101,7 @@
                 <div class="col-auto q-ml-sm">
                   <div class="column">
                     <div class="col">
-                      <q-btn icon="mdi-send-outline" color="accent" @click="sendChat()" :disable="promptForChatId === null" />
+                      <q-btn icon="mdi-reply-outline" color="accent" @click="sendChat()" :disable="promptForChatId === null" />
                     </div>
                     <div class="col q-mt-md">
                       <q-btn flat icon="mdi-cog" @click="settingsOpen = !settingsOpen" />

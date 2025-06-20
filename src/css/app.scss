@@ -285,6 +285,11 @@ textarea::-webkit-scrollbar-button {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
+.gradient-variation-3 {
+  background: linear-gradient(135deg, #ededf8 10%, #ffffff 100%);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
 .gradient-variation-2 {
   background: linear-gradient(135deg, #ffffff 80%, #ededf8 100%);
   box-shadow: 0px 0px 40px rgba(0, 0, 0, 0.1);

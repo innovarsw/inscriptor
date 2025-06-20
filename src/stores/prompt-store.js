@@ -30,6 +30,7 @@ import {useCurrentUser} from "vuefire";
 import {getCloudModelApiKey} from "src/common/utils/modelUtils";
 import Anthropic from "@anthropic-ai/sdk";
 import {chatTabId, getPromptTabId, promptTabId} from 'src/common/resources/tabs';
+import {useAiAgentStore} from 'stores/aiagent-store';
 
 export const usePromptStore = defineStore('prompts', {
   state: () => ({
@@ -50,6 +51,9 @@ export const usePromptStore = defineStore('prompts', {
     predefinedPrompts: [],
     predefinedPromptInstances: [],
 
+    promptAgents: [],
+    projectAgents: [],
+
     analysisEnabled: false,
     selectionAnalysisRunning: false,
     analysisPromptsSettings: {
@@ -66,7 +70,7 @@ export const usePromptStore = defineStore('prompts', {
 
     isPrompting: false,
     isSilentPrompting: false,
-    promptAbortController: null,
+    singletonPromptAbortController: null,
 
     promptParametersShown: false,
     currentPromptConfirmationRequest: null,
@@ -142,7 +146,10 @@ export const usePromptStore = defineStore('prompts', {
 
       this.updateTokens();
 
+      const aiAgentStore = useAiAgentStore();
+
       let lastResult = null;
+
 
       try {
         if(request.prompt.enablePromptRuns === true && request.prompt.runs && request.prompt.runs.length > 0 && !request.silent) {
@@ -173,14 +180,19 @@ export const usePromptStore = defineStore('prompts', {
               request.userPrompt = userPrompt;
             }
 
+            if ((request.abortController ?? this.singletonPromptAbortController)?.signal?.aborted) {
+              return null;
+            }
+
             const result = await this.promptInternal2(request);
 
-            if(request.prompt.promptType === "general" || request.prompt.promptType === "selection" || request.prompt.promptType === "selectionAnalysis") {
-              const trimmedResultText = result.text.trimStart().replace(/\n/g, '<br>');
-              if(trimmedResultText.length > 0) {
-                result.diff = diffStrings(request.text, trimmedResultText);
-              }
+            this.calculateDiffs(request, result);
+
+            if ((request.abortController ?? this.singletonPromptAbortController)?.signal?.aborted) {
+              return null;
             }
+
+            await aiAgentStore.runAgentsOnPromptResult(request, result);
 
             runResults.push({
               runName: run.name,
@@ -190,16 +202,21 @@ export const usePromptStore = defineStore('prompts', {
             console.log(result.diff);
           }
         } else {
-          for(let i = 0; i < request.promptTimes; i++) {
+          for(let i = 0; i < (request.promptTimes ?? 1); i++) {
 
             const result = await this.promptInternal2(request);
 
-            if(request.prompt.promptType === "general" || request.prompt.promptType === "selection" || request.prompt.promptType === "selectionAnalysis") {
-              const trimmedResultText = result.text.trimStart().replace(/\n/g, '<br>');
-              if(trimmedResultText.length > 0) {
-                result.diff = diffStrings(request.text, trimmedResultText);
-              }
+            if ((request.abortController ?? this.singletonPromptAbortController)?.signal?.aborted) {
+              return null;
             }
+
+            this.calculateDiffs(request, result);
+
+            if ((request.abortController ?? this.singletonPromptAbortController)?.signal?.aborted) {
+              return null;
+            }
+
+            await aiAgentStore.runAgentsOnPromptResult(request, result);
 
             lastResult = result;
 
@@ -223,6 +240,18 @@ export const usePromptStore = defineStore('prompts', {
         }
       }
       return lastResult;
+    },
+    abortAgentAnalysis(result) {
+      result.analysisByAgentAborted = true;
+      result.analysingByAgentMessage = 'Aborting...';
+    },
+    calculateDiffs(request, result) {
+      if (request.prompt.promptType === "general" || request.prompt.promptType === "selection" || request.prompt.promptType === "selectionAnalysis") {
+        const trimmedResultText = result.text.trimStart().replace(/\n/g, '<br>');
+        if (trimmedResultText.length > 0) {
+          result.diff = diffStrings(request.text, trimmedResultText);
+        }
+      }
     },
     async promptAgain2(request) {
       return await this.promptMultiple2(request);
@@ -451,6 +480,14 @@ export const usePromptStore = defineStore('prompts', {
         userPrompt2 = userPrompt2.replace('$chat', selectedText ?? '');
       }
 
+      if(request.agentMessages) {
+        for (const agentMessage of request.agentMessages) {
+          agentMessage.text = agentMessage.text.replace('$selection', selectedText ?? '');
+          agentMessage.text = agentMessage.text.replace('$textOrSelection', selectedText ?? '');
+          agentMessage.text = agentMessage.text.replace('$chat', selectedText ?? '');
+        }
+      }
+
       const editor = getEditor();
 
       if(editor) {
@@ -554,6 +591,14 @@ export const usePromptStore = defineStore('prompts', {
           }
         }
 
+        if(request.agentMessages) {
+          for (const agentMessage of request.agentMessages) {
+            if(agentMessage.text.includes(what)) {
+              agentMessage.text = agentMessage.text.replace(what, withWhat());
+            }
+          }
+        }
+
         if(assistantPrefix.includes(what)) {
           assistantPrefix = assistantPrefix.replace(what, withWhat());
         }
@@ -602,6 +647,11 @@ export const usePromptStore = defineStore('prompts', {
             if(userPrompt2) {
               userPrompt2 = userPrompt2.replace('$' + parameter.name, parameterValueText);
             }
+            if(request.agentMessages) {
+              for (const agentMessage of request.agentMessages) {
+                agentMessage.text = agentMessage.text.replace('$' + parameter.name, parameterValueText);
+              }
+            }
           }
         }
       }
@@ -626,6 +676,11 @@ export const usePromptStore = defineStore('prompts', {
         if(userPrompt2) {
           userPrompt2 = userPrompt2.replace('$' + variable.title, variable.value);
         }
+        if(request.agentMessages) {
+          for (const agentMessage of request.agentMessages) {
+            agentMessage.text = agentMessage.text.replace('$' + variable.title, variable.value);
+          }
+        }
       }
 
       systemPrompt = replaceMentionEditorText(systemPrompt);
@@ -637,9 +692,17 @@ export const usePromptStore = defineStore('prompts', {
         userPrompt2 = replaceMentionEditorText(userPrompt2);
       }
 
+      if(request.agentMessages) {
+        for (const agentMessage of request.agentMessages) {
+          agentMessage.text = replaceMentionEditorText(agentMessage.text);
+
+        }
+      }
+
       if(!promptResultInput || promptResultInput.length === 0) {
         promptResultInput = userPrompt;
       }
+
 
       let userInputValue = null;
 
@@ -707,10 +770,10 @@ export const usePromptStore = defineStore('prompts', {
           if(contextType.id === 'Current File' || contextType.id === 'Current & Children Files') {
             if(text && text.length > 0) {
               if(request.contextTypes.length > 1) {
-                context += fileStore.getFileNameWithPath(fileStore.selectedFile) + ' Text: ';
+                context += 'CURRENT FILE (' + fileStore.getFileNameWithPath(fileStore.selectedFile) + ') TEXT: \n';
               }
               context += convertHtmlToText(text);
-              context += '\n-----\n';
+              context += '\n\n-----\n\n';
             }
 
             if(contextType.id === 'Current & Children Files') {
@@ -720,9 +783,9 @@ export const usePromptStore = defineStore('prompts', {
                     const childText = convertHtmlToText(child.content);
 
                     if(childText && childText.length > 0) {
-                      context += '' + fileStore.getFileNameWithPath(child) + ' Text: \n';
+                      context += 'CHILD FILE ' + fileStore.getFileNameWithPath(child) + ' TEXT: \n';
                       context += childText;
-                      context += '\n-----\n';
+                      context += '\n\n-----\n\n';
                     }
 
                     addChildrenFunc(child);
@@ -735,20 +798,20 @@ export const usePromptStore = defineStore('prompts', {
           } else if(contextType.id === 'Selected Text') {
             if(selectedText && selectedText.length > 0) {
               if(request.contextTypes.length > 1) {
-                context += 'Selected Text inside ' + (fileStore.getFileNameWithPath(fileStore.selectedFile)) + ': ';
+                context += 'SELECTED TEXT INSIDE FILE ' + (fileStore.getFileNameWithPath(fileStore.selectedFile)) + ': \n';
               }
               context += convertHtmlToText(selectedText);
-              context += '\n-----\n';
+              context += '\n\n-----\n\n';
             }
           } else if(contextType.contextType === 'Dynamic' && contextType.value) {
-              context += '' + contextType.label + ':\n';
-              context += convertHtmlToText(contextType.value);
-              context += '\n-----\n';
+            context += '' + contextType.label + ':\n';
+            context += convertHtmlToText(contextType.value);
+            context += '\n\n-----\n\n';
           } else if(contextType.id === 'Current File Summary' || contextType.id === 'Current & Children File Summary') {
             const contextValue = fileStore.selectedFile?.synopsis ?? '';
             if(contextValue && contextValue.length > 0) {
-              context += fileStore.getFileNameWithPath(fileStore.selectedFile) + ' Summary: ' + convertHtmlToText(contextValue);
-              context += '\n-----\n';
+              context += 'CURRENT FILE SUMMARY ' + fileStore.getFileNameWithPath(fileStore.selectedFile) + ': ' + convertHtmlToText(contextValue);
+              context += '\n\n-----\n\n';
             }
 
             if(contextType.id === 'Current & Children File Summary') {
@@ -758,9 +821,9 @@ export const usePromptStore = defineStore('prompts', {
                     const childText = child.synopsis ?? '';
 
                     if(childText && childText.length > 0) {
-                      context += '' + fileStore.getFileNameWithPath(child) + ' Text Summary:\n';
+                      context += 'CHILD FILE SUMMARY (' + fileStore.getFileNameWithPath(child) + '):\n';
                       context += convertHtmlToText(childText);
-                      context += '\n-----\n';
+                      context += '\n\n-----\n\n';
                     }
 
                     addChildrenFunc(child);
@@ -776,8 +839,8 @@ export const usePromptStore = defineStore('prompts', {
               const charactersToTake = contextType.parameters;
               const previousCharacters = getTextBeforeKeepingWordsIntact(textBefore, charactersToTake);
 
-              context += 'Preceding text: ' + convertHtmlToText(previousCharacters);
-              context += '\n-----\n';
+              context += 'PREVIOUS TEXT: \n\n' + convertHtmlToText(previousCharacters);
+              context += '\n\n-----\n\n';
 
               //contextTextMessages.push({type: 'assistant', text: previousCharacters});
             }
@@ -786,7 +849,7 @@ export const usePromptStore = defineStore('prompts', {
             const contextValue = fileStore.getContextText(contextType.parameters);
 
             if(contextValue && contextValue.length > 0) {
-              context += 'Context: ' + contextType.parameters + ': \n';
+              context += 'CONTEXT ' + contextType.parameters + ': \n';
               context += convertHtmlToText(contextValue);
               context += '\n-----\n';
             }
@@ -798,7 +861,7 @@ export const usePromptStore = defineStore('prompts', {
               const fileText = convertHtmlToText(file.content);
 
               if(fileText && fileText.length > 0) {
-                context += '' + fileStore.getFileNameWithPath(file) + ' Text: \n';
+                context += 'FILE ' + fileStore.getFileNameWithPath(file) + ' TEXT: \n';
                 context += fileText;
                 context += '\n-----\n';
               }
@@ -810,7 +873,7 @@ export const usePromptStore = defineStore('prompts', {
                       const childText = convertHtmlToText(child.content);
 
                       if(childText && childText.length > 0) {
-                        context += '' + fileStore.getFileNameWithPath(child) + ' Text: \n';
+                        context += 'CHILD FILE ' + fileStore.getFileNameWithPath(child) + ' TEXT: \n';
                         context += childText;
                         context += '\n-----\n';
                       }
@@ -833,9 +896,9 @@ export const usePromptStore = defineStore('prompts', {
               const fileText = file.synopsis ?? '';
 
               if(fileText && fileText.length > 0) {
-                context += '' + fileStore.getFileNameWithPath(file) + ' Text Summary:\n';
+                context += 'FILE SUMMARY ' + fileStore.getFileNameWithPath(file) + ':\n';
                 context += convertHtmlToText(fileText);
-                context += '\n-----\n';
+                context += '\n\n-----\n\n';
               }
 
               if(contextType.contextType === 'File and Children Summary') {
@@ -845,9 +908,9 @@ export const usePromptStore = defineStore('prompts', {
                       const childText = child.synopsis ?? '';
 
                       if(childText && childText.length > 0) {
-                        context += '' + fileStore.getFileNameWithPath(child) + ' Text Summary:\n';
+                        context += 'CHILD FILE SUMMARY ' + fileStore.getFileNameWithPath(child) + ':\n';
                         context += convertHtmlToText(childText);
-                        context += '\n-----\n';
+                        context += '\n\n-----\n\n';
                       }
 
                       addChildrenFunc(child);
@@ -862,9 +925,9 @@ export const usePromptStore = defineStore('prompts', {
             const contextValue = fileStore.getContextSummary(contextType.parameters);
 
             if(contextValue && contextValue.length > 0) {
-              context += 'Context Summaries: ' + contextType.parameters + ':\n';
+              context += 'CONTEXT SUMMARIES ' + contextType.parameters + ':\n';
               context += convertHtmlToText(contextValue);
-              context += '\n-----\n';
+              context += '\n\n-----\n\n';
             }
           } else if(contextType.contextType === "Variable") {
             const variable = fileStore.variables.find(v => v.title === contextType.parameters);
@@ -872,7 +935,7 @@ export const usePromptStore = defineStore('prompts', {
 
             if(variableText && variableText.length > 0) {
               context += variable.title + ': ' + convertHtmlToText(variableText);
-              context += '\n-----\n';
+              context += '\n\n-----\n\n';
             }
           } else {
             // log
@@ -945,6 +1008,10 @@ export const usePromptStore = defineStore('prompts', {
         textMessages = forceMessages;
       }
 
+      if(request.agentMessages) {
+        textMessages.push(...request.agentMessages);
+      }
+
       for (const textMessage of textMessages ?? []) {
         if(textMessage.text === '') {
           textMessage.text = ' '; // fix for some AI models that do not accept empty string
@@ -987,12 +1054,16 @@ export const usePromptStore = defineStore('prompts', {
     promptInternal2(request) {
       if(this.shouldCancelRunningPrompt(request)) {
         if(this.isPrompting) {
-          this.promptAbortController?.abort();
+          this.singletonPromptAbortController?.abort();
         }
 
         this.isPrompting = true;
       } else {
         this.isSilentPrompting = request.silent;
+      }
+
+      if ((request.abortController ?? this.singletonPromptAbortController)?.signal?.aborted) {
+        return;
       }
 
       const layoutStore = useLayoutStore();
@@ -1014,7 +1085,7 @@ export const usePromptStore = defineStore('prompts', {
         });
       }
 
-      this.promptAbortController = new AbortController();
+      this.singletonPromptAbortController = new AbortController();
 
       if(this.hasCustomPromptUi(request) && !request.executeCustomPromptUi) {
         return new Promise(async (resolve, reject) => {
@@ -1031,6 +1102,12 @@ export const usePromptStore = defineStore('prompts', {
           pr.model = model;
           pr.temperature = input.temperature;
           pr.executedTextMessages = input.textMessages ? [...input.textMessages] : undefined;
+
+          if(request.abortController && request.abortController.signal && request.abortController.signal.aborted) {
+            reject(new Error('Prompt was aborted.'));
+            this.onPromptingEnd(request, pr);
+            return;
+          }
 
           const inferenceEngine = input.model.args.inferenceEngine;
           let customApiKey = null;
@@ -1245,9 +1322,6 @@ export const usePromptStore = defineStore('prompts', {
                 if (pr.meta === null) {
                   pr.text += text;
                   pr.originalText += text;
-                  if (request.onOutput) {
-                    request.onOutput(pr.text, text, false);
-                  }
 
                   if (pr.text.includes('[[META]]')) {
                     // extract text after [[META]]
@@ -1258,6 +1332,10 @@ export const usePromptStore = defineStore('prompts', {
                     pr.meta = '';
                     pr.meta += meta;
                   }
+
+                  if (request.onOutput) {
+                    request.onOutput(pr.text, text, false, false, request, pr);
+                  }
                 } else {
                   pr.meta += text;
                 }
@@ -1265,7 +1343,7 @@ export const usePromptStore = defineStore('prompts', {
               () => {
 
                 if (request.onOutput) {
-                  request.onOutput(pr.text, null, true, false);
+                  request.onOutput(pr.text, null, true, false, request, pr);
                 }
 
                 pr.waitingForResponse = false;
@@ -1334,7 +1412,7 @@ export const usePromptStore = defineStore('prompts', {
               },
               (err) => {
                 if (request.onOutput) {
-                  request.onOutput(pr.text, null, true, true);
+                  request.onOutput(pr.text, null, true, true, request, pr);
                 }
 
                 pr.waitingForResponse = false;
@@ -1346,7 +1424,7 @@ export const usePromptStore = defineStore('prompts', {
 
                 this.onPromptingEnd(request, pr);
               },
-              this.promptAbortController,
+              request.abortController ?? this.singletonPromptAbortController,
               controllerName, actionName);
           }
           else if (promptingEngineToUse === 'lmstudio') {
@@ -1379,28 +1457,36 @@ export const usePromptStore = defineStore('prompts', {
             try {
 
               const stream = await openai.chat.completions.create({
-                model: model.modelName,
-                messages: messages,
-                stream: true,
+                  model: model.modelName,
+                  messages: messages,
+                  stream: true,
 
-                frequency_penalty: input.frequencyPenalty,
-                presence_penalty: input.presencePenalty,
+                  frequency_penalty: input.frequencyPenalty,
+                  presence_penalty: input.presencePenalty,
 
-                temperature: model.hasTemperature === false ? undefined : input.temperature,
-                top_p: input.topP,
+                  temperature: model.hasTemperature === false ? undefined : input.temperature,
+                  top_p: input.topP,
 
-                max_tokens: input.maxTokens,
-                stop: model.defaultStopStrings.length > 0 ? undefined : model.defaultStopStrings,
-                //response_format: input.jsonMode === true ? { "type": "json_object" } : undefined,
-              },
+                  max_tokens: input.maxTokens,
+                  stop: model.defaultStopStrings.length > 0 ? undefined : model.defaultStopStrings,
+                  //response_format: input.jsonMode === true ? { "type": "json_object" } : undefined,
+                },
                 {
-                  signal: this.promptAbortController.signal,
+                  signal: request.abortController?.signal ?? this.singletonPromptAbortController.signal,
                   method: 'POST',
                 });
               for await (const chunk of stream) {
                 pr.waitingForResponse = false;
                 pr.text += chunk.choices[0]?.delta?.content ?? '';
                 pr.originalText += chunk.choices[0]?.delta?.content ?? '';
+
+                if (request.onOutput) {
+                  request.onOutput(pr.text, chunk.choices[0]?.delta?.content, false, false, request, pr);
+                }
+              }
+
+              if (request.onOutput) {
+                request.onOutput(pr.text, null, true, false, request, pr);
               }
 
               pr.waitingForResponse = false;
@@ -1413,6 +1499,10 @@ export const usePromptStore = defineStore('prompts', {
               pr.waitingForResponse = false;
               if (loggedPrompt) loggedPrompt.error = err;
               pr.error = err;
+
+              if (request.onOutput) {
+                request.onOutput(pr.text, null, true, true, request, pr);
+              }
 
               reject(err);
 
@@ -1448,30 +1538,38 @@ export const usePromptStore = defineStore('prompts', {
 
             try {
               const stream = await openai.chat.completions.create({
-                model: model.modelName,
-                messages: messages,
-                stream: true,
+                  model: model.modelName,
+                  messages: messages,
+                  stream: true,
 
-                frequency_penalty: input.frequencyPenalty,
-                presence_penalty: input.presencePenalty,
+                  frequency_penalty: input.frequencyPenalty,
+                  presence_penalty: input.presencePenalty,
 
-                temperature: model.hasTemperature === false ? undefined : input.temperature,
-                top_p: input.topP,
+                  temperature: model.hasTemperature === false ? undefined : input.temperature,
+                  top_p: input.topP,
 
-                max_completion_tokens: input.maxTokens,
-                //stop: model.defaultStopStrings.length > 0 ? undefined : model.defaultStopStrings,
-                response_format: input.jsonMode === true ? { type: "json_object" } : undefined,
-              },
+                  max_completion_tokens: input.maxTokens,
+                  //stop: model.defaultStopStrings.length > 0 ? undefined : model.defaultStopStrings,
+                  response_format: input.jsonMode === true ? { type: "json_object" } : undefined,
+                },
                 {
-                  signal: this.promptAbortController.signal,
+                  signal: request.abortController?.signal ?? this.singletonPromptAbortController.signal,
                 });
               for await (const chunk of stream) {
                 pr.waitingForResponse = false;
                 pr.text += chunk.choices[0]?.delta?.content ?? '';
                 pr.originalText += chunk.choices[0]?.delta?.content ?? '';
+
+                if (request.onOutput) {
+                  request.onOutput(pr.text, chunk.choices[0]?.delta?.content, false, false, request, pr);
+                }
               }
 
               pr.waitingForResponse = false;
+
+              if (request.onOutput) {
+                request.onOutput(pr.text, null, true, false, request, pr);
+              }
 
               resolve(pr);
 
@@ -1480,6 +1578,10 @@ export const usePromptStore = defineStore('prompts', {
               pr.waitingForResponse = false;
               if (loggedPrompt) loggedPrompt.error = err;
               pr.error = err;
+
+              if (request.onOutput) {
+                request.onOutput(pr.text, null, true, true, request, pr);
+              }
 
               reject(err);
 
@@ -1529,11 +1631,15 @@ export const usePromptStore = defineStore('prompts', {
                 model: model.modelName,
                 stream: true,
               }, {
-                signal: this.promptAbortController.signal,
+                signal: request.abortController?.signal ?? this.singletonPromptAbortController.signal,
               }).on('text', (text) => {
                 pr.waitingForResponse = false;
                 pr.text += text;
                 pr.originalText += text;
+
+                if (request.onOutput) {
+                  request.onOutput(pr.text, text, false, false, request, pr);
+                }
               });
 
               const message = await stream.finalMessage();
@@ -1543,6 +1649,10 @@ export const usePromptStore = defineStore('prompts', {
 
               pr.waitingForResponse = false;
 
+              if (request.onOutput) {
+                request.onOutput(pr.text, null, true, false, request, pr);
+              }
+
               resolve(pr);
 
               this.onPromptingEnd(request, pr);
@@ -1550,6 +1660,10 @@ export const usePromptStore = defineStore('prompts', {
               pr.waitingForResponse = false;
               if (loggedPrompt) loggedPrompt.error = err;
               pr.error = err;
+
+              if (request.onOutput) {
+                request.onOutput(pr.text, null, true, true, request, pr);
+              }
 
               reject(err);
 
@@ -1605,6 +1719,14 @@ export const usePromptStore = defineStore('prompts', {
                   pr.waitingForResponse = false;
                   pr.text += chunk?.response ?? '';
                   pr.originalText += chunk?.response ?? '';
+
+                  if (request.onOutput) {
+                    request.onOutput(pr.text, chunk?.response, false, false, request, pr);
+                  }
+                }
+
+                if (request.onOutput) {
+                  request.onOutput(pr.text, null, true, false, request, pr);
                 }
 
                 pr.waitingForResponse = false;
@@ -1647,6 +1769,14 @@ export const usePromptStore = defineStore('prompts', {
                   pr.waitingForResponse = false;
                   pr.text += chunk?.message?.content ?? '';
                   pr.originalText += chunk?.message?.content ?? '';
+
+                  if (request.onOutput) {
+                    request.onOutput(pr.text, chunk?.message?.content, false, false, request, pr);
+                  }
+                }
+
+                if (request.onOutput) {
+                  request.onOutput(pr.text, null, true, false, request, pr);
                 }
 
                 pr.waitingForResponse = false;
@@ -1661,6 +1791,10 @@ export const usePromptStore = defineStore('prompts', {
 
               if (loggedPrompt) loggedPrompt.error = err;
               pr.error = err;
+
+              if (request.onOutput) {
+                request.onOutput(pr.text, null, true, true, request, pr);
+              }
 
               reject(err);
 
@@ -1693,7 +1827,7 @@ export const usePromptStore = defineStore('prompts', {
 
               const idToken = await user.value.getIdToken();
 
-              response = await generateImage(idToken, promptRequest, this.promptAbortController);
+              response = await generateImage(idToken, promptRequest, request.abortController?.signal ?? this.singletonPromptAbortController);
 
               pr.type = 'image';
               if (!pr.images) {
@@ -1729,7 +1863,7 @@ export const usePromptStore = defineStore('prompts', {
             const promptData = applyPromptFormatPrefixSuffix(input.systemPrefix, input.systemSuffix, input.systemPrompt, input.userPrefix, input.userSuffix, input.userPrompt, input.assistantPrefix, input.assistantSuffix);
 
             try {
-              const result = await promptLocalAutomatic1111(model.args.url, promptData, this.promptAbortController);
+              const result = await promptLocalAutomatic1111(model.args.url, promptData, request.abortController?.signal ?? this.singletonPromptAbortController);
 
               if (result) {
                 pr.type = 'image';
@@ -1777,7 +1911,7 @@ export const usePromptStore = defineStore('prompts', {
     },
     stopPrompt() {
       if(this.isPrompting) {
-        this.promptAbortController.abort();
+        this.singletonPromptAbortController.abort();
         this.isPrompting = false;
         this.onPromptingEnd(null, null);
       }
@@ -2205,8 +2339,151 @@ export const usePromptStore = defineStore('prompts', {
 
       this.onUpdatePrompt(prompt);
     },
+    addProjectAgent() {
+      if(!this.projectAgents) {
+        this.projectAgents = [];
+      }
+
+      this.projectAgents.push({
+        id: guid(),
+        title: 'New Project Agent',
+        promptId: null,
+        ignoreResultText: 'OK',
+      });
+    },
+    updateProjectAgent(agent, args) {
+      if(!agent || !args) return;
+
+      if(args.title !== undefined) {
+        agent.title = args.title;
+      }
+
+      if(args.promptId !== undefined) {
+        agent.promptId = args.promptId;
+      }
+
+      if(args.searchPrefix !== undefined) {
+        agent.searchPrefix = args.searchPrefix;
+      }
+    },
+    deleteProjectAgent(agent) {
+      if(!this.projectAgents) return;
+      const index = this.projectAgents.indexOf(agent);
+      this.projectAgents.splice(index, 1);
+    },
+    moveProjectAgentUp(agent) {
+      if(!this.projectAgents) return;
+      const index = this.projectAgents.indexOf(agent);
+      this.projectAgents.splice(index, 1);
+      this.projectAgents.splice(index - 1, 0, agent);
+    },
+    moveProjectAgentDown(agent) {
+      if(!this.projectAgents) return;
+      const index = this.projectAgents.indexOf(agent);
+      this.projectAgents.splice(index, 1);
+      this.projectAgents.splice(index + 1, 0, agent);
+    },
+    addPromptAgent() {
+      if(!this.promptAgents) {
+        this.promptAgents = [];
+      }
+
+      this.promptAgents.push({
+        id: guid(),
+        title: 'New Agent',
+        type: 'Refiner',
+        prompt: '',
+        ignoreResultText: 'OK',
+      });
+    },
+    updatePromptAgent(agent, args) {
+      if(!agent || !args) return;
+
+      if(args.title !== undefined) {
+        agent.title = args.title;
+      }
+
+      if(args.type !== undefined) {
+        agent.type = args.type;
+      }
+
+      if(args.prompt !== undefined) {
+        agent.prompt = args.prompt;
+      }
+
+      if(args.ignoreResultText !== undefined) {
+        agent.ignoreResultText = args.ignoreResultText;
+      }
+
+      if(args.allowMultipleRuns !== undefined) {
+        agent.allowMultipleRuns = args.allowMultipleRuns;
+      }
+
+      if(args.maxRuns !== undefined) {
+        agent.maxRuns = args.maxRuns;
+      }
+    },
+    deletePromptAgent(agent) {
+      if(!this.promptAgents) return;
+      const index = this.promptAgents.indexOf(agent);
+      this.promptAgents.splice(index, 1);
+    },
+    movePromptAgentUp(agent) {
+      if(!this.promptAgents) return;
+      const index = this.promptAgents.indexOf(agent);
+      this.promptAgents.splice(index, 1);
+      this.promptAgents.splice(index - 1, 0, agent);
+    },
+    movePromptAgentDown(agent) {
+      if(!this.promptAgents) return;
+      const index = this.promptAgents.indexOf(agent);
+      this.promptAgents.splice(index, 1);
+      this.promptAgents.splice(index + 1, 0, agent);
+    },
+    addPromptPromptAgent(prompt) {
+      if(!prompt) return;
+
+      if(!prompt.agents) {
+        prompt.agents = [];
+      }
+
+      prompt.agents.push({
+        id: guid(),
+        agentId: null,
+      });
+
+      this.onUpdatePrompt(prompt);
+    },
+    updatePromptPromptAgent(prompt, agent, args) {
+      if(!agent || !args) return;
+
+      if(args.agentId !== undefined) {
+        agent.agentId = args.agentId;
+      }
+
+      this.onUpdatePrompt(prompt);
+    },
+    deletePromptPromptAgent(prompt, agent) {
+      if(!prompt || !prompt.agents) return;
+      const index = prompt.agents.indexOf(agent);
+      prompt.agents.splice(index, 1);
+
+      this.onUpdatePrompt(prompt);
+    },
+    movePromptPromptAgentUp(prompt, agent) {
+      if(!prompt || !prompt.agents) return;
+      const index = prompt.agents.indexOf(agent);
+      prompt.agents.splice(index, 1);
+      prompt.agents.splice(index - 1, 0, agent);
+    },
+    movePromptPromptAgentDown(prompt, agent) {
+      if(!prompt || !prompt.agents) return;
+      const index = prompt.agents.indexOf(agent);
+      prompt.agents.splice(index, 1);
+      prompt.agents.splice(index + 1, 0, agent);
+    },
     addPromptAction(prompt) {
-     if(!prompt) return;
+      if(!prompt) return;
 
       if(!prompt.actions) {
         prompt.actions = [];
@@ -2530,6 +2807,8 @@ export const usePromptStore = defineStore('prompts', {
         contextTypes: this.contextTypes,
         promptCategories: this.promptCategories,
         promptFolders: this.promptFolders,
+        promptAgents: this.promptAgents,
+        projectAgents: this.projectAgents,
         savedPromptContexts: this.savedPromptContexts,
         hubPromptPacks: this.hubPromptPacks,
         modelPromptPacks: this.modelPromptPacks,
@@ -2568,13 +2847,17 @@ export const usePromptStore = defineStore('prompts', {
 
       this.currentSpellCheckLanguage = {
         "label": "English (USA)",
-          "value": "en_US"
+        "value": "en_US"
       };
 
       //this.analysisEnabled = false;
       this.analysisPromptsSettings = {
         prompts: []
       };
+
+      this.promptAgents = [];
+
+      this.projectAgents = [];
 
       this.predefinedPrompts = [
         { promptType: 'Summarize Page', promptHint: 'Can be used to quickly generate file synopsies / summaries.' },
@@ -2693,6 +2976,20 @@ export const usePromptStore = defineStore('prompts', {
               this.promptCategories.splice(index, 0, category);
             }
           }
+        }
+      }
+
+      if(aiSettings.promptAgents) {
+        this.promptAgents = [];
+        for(const agent of aiSettings.promptAgents) {
+          this.promptAgents.push(agent);
+        }
+      }
+
+      if(aiSettings.projectAgents) {
+        this.projectAgents = [];
+        for(const agent of aiSettings.projectAgents) {
+          this.projectAgents.push(agent);
         }
       }
 

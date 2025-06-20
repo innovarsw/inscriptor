@@ -31,6 +31,14 @@ export default {
       topK: 'Reduces the probability of generating nonsense. A higher value (e.g. 100) will give more diverse answers, while a lower value (e.g. 10) will be more conservative. (Default: 40).',
 
       promptTimes: "The number of times the prompt will be repeated. Use this to generate more results at once, to get more variety.",
+
+      ignoreResultText: 'If the result of the prompt is the same as this text, the result will not be changed.',
+      hiddenInPromptSelector: 'If checked, the prompt will not be displayed in the prompt selector.',
+      hasResultsSeparator: 'String that the AI outputs to separate the results in UI (for example to separate ideas in brainstorming prompts)',
+      agentMaxRuns: 'The maximum number of times the agent can be run. If the agent is allowed to run multiple times, this will be the maximum number of times the agent will be run.',
+      hasExtendedChatMessages: 'If checked, the AI will be fed more messages that you specify. It might be used to fool AI that it has generated some text (even if it has not) and to continue in similar style.',
+
+      searchPrefix: 'The prefix that the agent will search for in each paragraph of the text. Use this to mark paragraphs to be processed by the AI agent. Keep this field empty to run AI agent on all paragraphs.',
     },
   },
 }
