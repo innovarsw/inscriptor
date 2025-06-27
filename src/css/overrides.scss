@@ -44,3 +44,11 @@
 .q-field--filled .q-field__control {
   background-color: rgba(0, 0, 0, 0.05) !important;
 }
+
+.q-splitter__before {
+  overflow: visible !important;
+}
+
+.q-splitter__separator {
+  z-index: 0 !important;
+}

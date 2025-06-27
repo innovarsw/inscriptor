@@ -6,7 +6,7 @@
           <div class="col-auto q-ml-xs">
             <template v-if="fileStore.projectSettings?.syncToCloud">
               <q-spinner v-if="layoutStore.projectSyncIndicator" class="absolute" />
-              <q-icon v-else name="mdi-cloud-outline" class="absolute" />
+              <q-icon v-else name="mdi-folder-outline" class="absolute" />
             </template>
             <template v-else>
               <q-icon name="mdi-folder-outline" class="absolute" />

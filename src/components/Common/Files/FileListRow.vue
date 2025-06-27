@@ -21,62 +21,58 @@
         @drop="onDrop($event, file)"
         class="col self-center cursor-pointer" style="height: 25px;">
 
-        <div class="no-wrap  flex items-center inline" @dragstart="startDrag($event, file)" @dragend="endDrag($event, file)" draggable="true">
-          <template v-if="true || (file.children?.length > 0 ?? false)">
+        <div class="row">
+          <div class="col-auto">
             <q-btn :color="props.file.state?.color" flat dense @click.prevent="clickExpandFile($event, file)" padding="4px 1px" size="10px" class="q-mr-xs">
               <q-icon :name="isMainRowHovered ? (file.expanded ? 'expand_less' : 'expand_more') : (file.icon ?? ('mdi-folder-outline'))" size="16px" class="no-margin no-padding"/>
               <q-tooltip :delay="500" v-if="props.file.state?.color">
                 State: {{ props.file.state?.label }}
               </q-tooltip>
             </q-btn>
-          </template>
-          <template v-else>
-            <!-- empty element with 14 px width -->
-            <div class="inline-block" style="width: 1px">&nbsp;</div>
+          </div>
 
-            <q-icon :name="file.icon ?? 'mdi-file-outline'" :color="file.state?.color" class="no-padding no-margin" size="17px" />
-            <div class="inline-block" style="width: 5px">&nbsp;</div>
+          <div class="col flex items-center">
+            <span class="file-menu-item flex items-center no-wrap" style="white-space: nowrap; overflow: hidden;">
+              {{ truncate(file.title, 300) }}
+              <span v-if="file.dirty" class="text-grey-7">*</span>
+              <template v-if="file.children && file.children.length > 0 && !file.expanded">
+                <q-badge color="grey-5" rounded :label="file.children.length" class="q-ml-xs file-child-count-bubble">
+                </q-badge>
+              </template>
+            </span>
+          </div>
 
-          </template>
-          <span class="file-menu-item flex items-center" >
-            {{ truncate(file.title, 25) }}
-            <span v-if="file.dirty" class="text-grey-7">*</span>
-            <template v-if="file.children && file.children.length > 0 && !file.expanded">
-              <q-badge color="grey-5" rounded :label="file.children.length" class="q-ml-xs file-child-count-bubble">
+          <div class="col-auto flex items-center q-ml-xs">
+            <template v-for="(label, index) in file.labels ?? []" :key="index">
+              <q-badge :color="label.color + '-3'" rounded class="q-ml-xs">
+                <q-tooltip :delay="500">
+                  {{ label.label }} label
+                </q-tooltip>
               </q-badge>
             </template>
-          </span>
 
-
+            <template v-if="file.settings?.contextType">
+              <q-badge :color="file.settings.contextType.color + '-1'" :text-color="file.settings.contextType.color + '-7'" rounded class="q-ml-xs" style="font-size: 0.7rem;">
+                <template v-if="isMainRowHovered">
+                  {{file.settings?.contextType.label}}
+                </template>
+                <template v-else>
+                  {{file.settings?.contextType.label.charAt(0)}}
+                </template>
+                <q-tooltip :delay="500">
+                  This file is included in the {{ file.settings.contextType.label }} context.
+                </q-tooltip>
+              </q-badge>
+            </template>
+          </div>
+          <div class="col-auto flex items-center" :style="{ visibility: isMainRowHovered ? 'visible' : 'hidden' }">
+            <q-btn icon="mdi-dots-horizontal" color="grey" flat dense size="10px" padding="3px 2px" @click.stop class="q-ml-xs">
+              <q-menu>
+                <FileListRowContextMenu :file="file"/>
+              </q-menu>
+            </q-btn>
+          </div>
         </div>
-
-        <div class="float-right inline">
-          <template v-for="(label, index) in file.labels ?? []" :key="index">
-            <q-badge :color="label.color + '-3'" rounded class="q-ml-xs">
-              <q-tooltip :delay="500">
-                {{ label.label }} label
-              </q-tooltip>
-            </q-badge>
-          </template>
-
-          <template v-if="file.settings?.contextType">
-            <q-badge :color="file.settings.contextType.color + '-2'" :text-color="file.settings.contextType.color + '-8'" rounded class="q-ml-xs" style="font-size: 0.7rem;">
-              {{ truncate(file.settings?.contextType.label, truncateContextChars) }}
-              <q-tooltip :delay="500">
-                This file is included in the {{ file.settings.contextType.label }} context.
-              </q-tooltip>
-            </q-badge>
-          </template>
-        </div>
-
-      </div>
-
-      <div class="col-auto flex items-center" :style="{ visibility: isMainRowHovered ? 'visible' : 'hidden' }">
-        <q-btn icon="mdi-dots-horizontal" color="grey" flat dense size="10px" padding="3px 2px" @click.stop class="q-ml-xs">
-          <q-menu>
-            <FileListRowContextMenu :file="file"/>
-          </q-menu>
-        </q-btn>
       </div>
     </div>
   </div>

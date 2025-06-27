@@ -9,8 +9,8 @@ import axios from 'axios'
 // "export default () => {}" function below (which runs individually
 // for each client)
 
-export const url = 'https://tt-cloud-be.azurewebsites.net/';
-//export const url = 'http://localhost:5013/';
+//export const url = 'https://tt-cloud-be.azurewebsites.net/';
+export const url = 'http://localhost:5013/';
 const api = axios.create({ baseURL: url })
 
 export default boot(({ app }) => {

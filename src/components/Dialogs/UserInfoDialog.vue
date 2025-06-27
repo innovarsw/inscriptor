@@ -236,7 +236,7 @@
 
                       <q-item-section>
                         <q-item-label>1 project on cloud</q-item-label>
-                        <q-item-label caption>max 30 files per project, limited size</q-item-label>
+                        <q-item-label caption>max 30 files per project</q-item-label>
                       </q-item-section>
                     </q-item>
 
@@ -283,8 +283,7 @@
                       </q-item-section>
 
                       <q-item-section>
-                        <q-item-label>Everything from Basic plan</q-item-label>
-                        <q-item-label caption class="text-inscriptorblue-light">Local projects, Local AI and more!</q-item-label>
+                        <q-item-label>Everything from Free plan</q-item-label>
                       </q-item-section>
                     </q-item>
 

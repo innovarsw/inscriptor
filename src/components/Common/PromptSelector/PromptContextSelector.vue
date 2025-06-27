@@ -61,22 +61,29 @@
         <q-card style="width: 668px">
           <q-card-section class="no-padding">
             <div class="row">
-              <div class="col-3 q-pa-md bg-grey-1">
-                <q-btn dense flat color="primary" icon="mdi-content-save-outline" label="Save Context" size="13px" @click="saveCurrentContext()" />
+              <div class="col-3 q-py-md q-px-xs bg-grey-1">
+                <div class="row">
+                  <div class="col flex justify-center">
+                    <q-btn dense flat color="primary" icon="mdi-content-save-outline" label="Save Context" size="13px" @click="saveCurrentContext()" />
+                  </div>
+                </div>
 
                 <template v-if="promptStore.savedPromptContexts.length > 0">
-                  <div class="text-subtitle2 q-mt-md">Saved Contexts:</div>
-                  <q-list dense class="">
-                    <q-item dense v-for="savedContext in promptStore.savedPromptContexts" :key="savedContext.name" class="no-padding">
-                      <q-item-section class="justify-start content-start">
-                        <q-btn no-wrap dense flat padding="3px 10px" color="primary" no-caps :label="truncate(savedContext.name, 14)" @click="restoreSavedContext(savedContext)">
-                          <q-tooltip :delay="1000">
+                  <q-separator class="q-my-md" />
+                  <q-list dense class="scroll-y" style="max-height: 450px">
+                    <div v-for="savedContext in promptStore.savedPromptContexts" :key="savedContext.name" class="row full-width q-mb-sm bordered q-pl-sm">
+                      <div class="col flex justify-start items-center">
+                        <div class="cursor-pointer text-weight-regular text-grey-9 full-width" @click="restoreSavedContext(savedContext)">
+                          {{truncate(savedContext.name, 25)}}
+                          <q-tooltip :delay="500">
                             <div>{{ savedContext.name }}</div>
                           </q-tooltip>
-                        </q-btn>
-                      </q-item-section>
-                      <q-item-section side><q-btn dense flat icon="mdi-delete-outline"  color="red" @click="deleteSavedContext(savedContext)"></q-btn></q-item-section>
-                    </q-item>
+                        </div>
+                      </div>
+                      <div class="col-auto flex items-center">
+                        <q-btn dense flat icon="mdi-delete-outline" color="negative" @click="deleteSavedContext(savedContext)"></q-btn>
+                      </div>
+                    </div>
                   </q-list>
                 </template>
 

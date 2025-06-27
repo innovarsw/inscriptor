@@ -1,5 +1,5 @@
 <template>
-  <div class="left-border" id="rightPanel" style="height: calc(100vh - 104px); width: 100%">
+  <div class="" id="rightPanel" style="height: calc(100vh - 104px); width: 100%">
     <q-expansion-item
       label="File Details"
       icon="mdi-information-outline"

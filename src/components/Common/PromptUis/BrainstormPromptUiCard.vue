@@ -87,7 +87,7 @@
             <q-input v-model="replyMessage" label="Reply to this idea..." dense borderless class="full-width" autofocus @keyup.enter="$emit('reply-to-idea', idea, replyMessage); replyMessage = ''"/>
           </div>
           <div class="col-auto flex items-center q-ml-sm">
-            <q-btn @click="$emit('reply-to-idea', idea, replyMessage); replyMessage = ''" icon="mdi-send-outline" size="12px" :loading="idea.generating" color="grey-7" flat dense no-caps/>
+            <q-btn @click="$emit('reply-to-idea', idea, replyMessage); replyMessage = ''" icon="mdi-reply-outline" size="12px" :loading="idea.generating" color="grey-7" flat dense no-caps/>
           </div>
         </div>
       </q-card-actions>

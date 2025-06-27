@@ -4,6 +4,7 @@
       class="bubble-menu"
       :tippy-options="{ duration: 100, placement: 'bottom', maxWidth: '600px', zIndex: 99999 }"
       :editor="editor"
+      :should-show="shouldShowDefaultBubbleMenu"
     >
       <div class="q-gutter-y-xs" v-if="aiBubbleMenu">
         <div class="row">
@@ -21,15 +22,18 @@
 
             <q-btn v-if="predefinedWordFinderPrompts && predefinedWordFinderPrompts.length > 0" size="11px" dense flat icon="mdi-text-search" padding="4px 6px" class="bg-white bordered inscriptor-shadow-1" color="accent" @click="runWordFinder()" :loading="wordFinderLoading">
               <q-popup-proxy transition-show="jump-down" transition-hide="fade" :offset="[0, 10]" class="popup-gradient-1">
-                <q-card style="width: 400px; height: 300px;" class="popup-gradient-1 idea-card column">
+                <q-card style="width: 400px; height: 300px;" class="popup-gradient-1 idea-card column ">
                   <div class="col-auto" style="height: 35px;">
-                    <div class="row text-center bg-accent q-py-xs q-px-md q-mb-sm full-width">
+                    <div class="row text-center bg-accent q-py-sm q-px-md q-mb-sm full-width">
                       <div class="col justify-start flex">
-                        <span class=text-white>{{ truncate(getSelectedText(), 40) }}</span>
+                        <div class="text-white text-weight-medium">
+                          <q-icon name="mdi-text-search" class="q-mr-xs" />
+                          {{ truncate(getSelectedText(), 40) }}
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div class="col scroll-y">
+                  <div class="col scroll-y q-mt-sm">
                     <div class="row">
                       <template v-for="(word, i) in wordFinderOutput" :key="i">
                         <div class="col-auto">
@@ -57,8 +61,20 @@
 
             <q-btn v-if="promptStore.analysisPromptsSettings.prompts && promptStore.analysisPromptsSettings.prompts.length > 0" size="11px" dense flat icon="mdi-chart-timeline-variant-shimmer" padding="4px 6px" class="bg-white bordered inscriptor-shadow-1" color="accent" @click="runSelectionAnalysis" :loading="promptStore.selectionAnalysisRunning">
               <q-popup-proxy transition-show="jump-down" transition-hide="fade" :offset="[0, 10]" class="gradient-variation-2 no-border" @on-before-show="console.log($event)" @show="console.log($event)">
-                <q-card style="min-width: 400px; max-width: 650px; height: 500px" class="scroll-y q-pa-md" v-if="promptStore.selectionPromptResults && promptStore.selectionPromptResults.length > 0">
-                  <div class="q-mb-sm" v-for="(promptResult, index) in promptStore.selectionPromptResults" :key="index">
+                <q-card style="min-width: 400px; max-width: 650px; height: 500px" class="scroll-y" v-if="promptStore.selectionPromptResults && promptStore.selectionPromptResults.length > 0">
+                  <div class="q-pa-sm bg-accent text-white">
+                    <div class="row items-center no-wrap">
+                      <div class="col">
+                        <div class="q-ml-xs text-body2 text-weight-medium">
+                          <q-icon name="mdi-chart-timeline-variant-shimmer" class="q-mr-xs" />
+                          Analysis
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+
+                  <div class="q-mb-sm q-mt-sm q-mx-sm" v-for="(promptResult, index) in promptStore.selectionPromptResults" :key="index">
                     <PromptResult :promptResult="promptResult" type="inline"/>
                   </div>
                 </q-card>
@@ -242,12 +258,6 @@
         </q-btn-dropdown>
       </div>
 
-      <!--<div class="col-auto">
-        <q-btn size="11px" dense flat square icon="format_list_bulleted"  @click="editor.chain().focus().toggleBulletList().run()" :class="{ 'text-light': !editor.isActive('bulletList'), 'text-primary': editor.isActive('bulletList') }"/>
-      </div>
-      <div class="col-auto">
-        <q-btn size="11px" dense flat square icon="format_list_numbered"  @click="editor.chain().focus().toggleOrderedList().run()" :class="{ 'text-light': !editor.isActive('orderedList'), 'text-primary': editor.isActive('orderedList') }"/>
-      </div>-->
       <div class="col-auto">
         <q-btn size="11px" dense flat icon="code"  @click="editor.chain().focus().toggleCodeBlock().run()" :class="{ 'text-grey-5': !editor.isActive('codeBlock'), 'text-primary': editor.isActive('codeBlock') }"/>
       </div>
@@ -269,10 +279,6 @@
         <q-chip dense v-if="fileStore.projectSettings.syncToCloud && promptStore.currentCharsCount >= layoutStore.getMaxFileSize()" color="negative" text-color="white" label="Max file size for your subscription plan reached." icon="mdi-exclamation-thick" class="text-caption" clickable @click="layoutStore.showUserDialog" />
       </div>
 
-      <!--<div class="col-auto">
-        <q-btn size="11px" dense flat square icon="person_outline"  @click="editor.chain().focus().toggleBlockquote().run()" :class="{ 'text-light': !editor.isActive('blockquote'), 'text-primary': editor.isActive('blockquote') }"/>
-      </div>-->
-
       <div class="col-auto">
         <q-btn size="11px" id="togglePrompts" dense flat icon="mdi-creation-outline" class="text-accent" :class="{ 'text-primary': showPrompts }">
           <q-popup-proxy transition-show="jump-down" transition-hide="fade" :offset="[0, 10]" anchor="bottom start">
@@ -286,7 +292,88 @@
         </q-btn>
       </div>
 
-      <div class="col-auto">
+      <div class="col-auto" v-if="promptStore.projectAgents.length > 0" ref="agentSelectorButton">
+        <q-btn
+          v-if="!isAgentActive"
+          size="11px"
+          dense
+          flat
+          :icon="agentIcon"
+          :class="agentButtonClass"
+          :disable="isAgentActive"
+        >
+          <!-- Spinner overlay when processing -->
+          <q-spinner-oval
+            v-if="agentState === 'processing'"
+            size="16px"
+            color="orange"
+            class="absolute-center"
+          />
+
+          <q-menu v-if="!isAgentActive">
+            <q-list dense>
+              <q-item v-for="agent in promptStore.projectAgents" :key="agent.id" clickable v-close-popup @click="runProjectAgent(agent)">
+                <q-item-section>
+                  <q-item-label class="flex items-center text-caption">
+                    <q-icon :name="promptStore.getPromptById(agent.promptId)?.icon ?? 'mdi-robot-outline'" color="accent" size="xs" class="q-mr-sm" />
+                    {{ agent.title }}
+                  </q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+
+          <q-tooltip :delay="1000">
+            {{ agentTooltip }}
+          </q-tooltip>
+        </q-btn>
+
+        <!-- Stop button when agent is active -->
+        <q-btn
+          v-if="isAgentActive"
+          size="11px"
+          dense
+          flat
+          icon="mdi-stop"
+          class="text-negative q-ml-xs"
+          @click="stopAgentProcessing"
+          no-caps
+          style="min-width: 120px;"
+        >
+          Stop AI Agent<AnimatedDots :speed="300" fixed-width="10px" />
+        </q-btn>
+
+        <q-popup-proxy
+          :model-value="agentSelectorButtonHovered"
+          v-if="aiAgentStore.agentStatus"
+          :offset="[10, 10]"
+        >
+          <q-card style="min-width: 300px; max-width: 400px;">
+            <q-card-section class="q-pb-sm">
+              <div class="text-subtitle2 text-weight-bold q-mb-sm">
+                {{ aiAgentStore.projectAgent?.title || 'AI Agent' }}
+              </div>
+              <div class="text-body2 text-grey-8">
+                {{ aiAgentStore.agentStatus }}
+              </div>
+            </q-card-section>
+
+            <q-card-section class="" style="max-height: 600px; ">
+              <div class="text-caption text-weight-medium q-mb-sm">History:</div>
+              <div v-for="(action, index) in aiAgentStore.agentActionHistory.slice().reverse()"
+                   :key="index"
+                   class="q-mb-sm text-body2"
+              >
+                <span class="text-caption text-grey-6">{{ action.timestamp }}</span>
+                <span class="text-caption q-ml-sm">{{ action.action }}</span>
+                <span class="text-caption q-ml-sm" v-if="action.reasoning">({{ action.reasoning }})</span>
+              </div>
+            </q-card-section>
+          </q-card>
+        </q-popup-proxy>
+      </div>
+
+      <div class="col-auto q-ml-md">
         <q-btn size="11px" dense flat icon="mdi-alpha-a-box" @click="toggleAiBubbleMenu" class="" :class="{ 'text-primary': aiBubbleMenu, 'text-grey-5': !aiBubbleMenu }">
           <q-tooltip>
             Toggle AI bubble menu
@@ -326,15 +413,41 @@
       </transition>
 
       <editor-content :class="writeClasses" class="no-outline" :editor="editor" :spellcheck="spellcheck" />
-      <!--<q-btn @click="fileStore.spellCheck()">Spell check</q-btn>-->
       <div class="text-editor-bottom" @click="onClickBelowEditor" />
     </div>
   </div>
 
+  <bubble-menu
+    v-if="editor"
+    :editor="editor"
+    :tippy-options="{
+      placement: 'bottom-start',
+      offset: [0, 12],
+      duration: [200, 150],
+      zIndex: 10000,
+      interactive: true,
+      interactiveBorder: 10,
+      interactiveDebounce: 75,
+      hideOnClick: false,
+      trigger: 'manual',
+      arrow: true,
+      theme: 'light-border',
+      maxWidth: 500,
+      appendTo: 'parent'
+    }"
+    :should-show="shouldShowConfirmationWidget"
+  >
+    <AgentConfirmationWidget
+      v-if="confirmationWidgetData && !aiAgentStore.projectAgentUserAborted"
+      :widget-data="confirmationWidgetData"
+      @accept="aiAgentStore.onWidgetAccept"
+      @reject="aiAgentStore.onWidgetReject"
+      @chat="aiAgentStore.onWidgetChat"
+      @undo="aiAgentStore.onWidgetUndo"
+    />
+  </bubble-menu>
 
-
-
-  <q-page-sticky position="bottom-left" :offset="[18, 18]" v-if="promptStore.hasStickyPrompts(fileStore.selectedFile)">
+  <q-page-sticky position="bottom-left" :offset="[8, 8]" v-if="promptStore.hasStickyPrompts(fileStore.selectedFile)">
     <q-fab
       v-model="aiFab"
       vertical-actions-align="left"
@@ -398,13 +511,19 @@ import {markdownToHtml, truncate} from 'src/common/utils/textUtils';
 import PromptResult from 'components/RightMenu/PromptResult.vue';
 import {CustomParagraph} from 'src/common/tipTap/CustomParagraph';
 import {AutoCompletePlugin} from 'src/common/tipTap/AutoComplete';
+import {AgentDecorationPlugin} from 'src/common/tipTap/AgentDecorationPlugin';
 import PromptContextSelector from 'components/Common/PromptSelector/PromptContextSelector.vue';
 import {HorizontalRule} from '@tiptap/extension-horizontal-rule';
+import {useAiAgentStore} from "stores/aiagent-store";
+import AgentConfirmationWidget from 'src/components/Common/AgentConfirmationWidget.vue';
+import AnimatedDots from 'src/components/Common/AnimatedDots.vue';
+import {UniqueID} from '@tiptap/extension-unique-id';
 
 const promptStore = usePromptStore();
 const fileStore = useFileStore();
 const editorStore = useEditorStore();
 const layoutStore = useLayoutStore();
+const aiAgentStore = useAiAgentStore();
 
 const props = defineProps({
   modelValue: {
@@ -429,10 +548,6 @@ const aiBubbleMenu = ref(true);
 
 function toggleAiBubbleMenu() {
   aiBubbleMenu.value = !aiBubbleMenu.value;
-}
-
-function onBubbleMenuShow() {
-  quickSelectionPromptShown.value = false;
 }
 
 function toggleAutomaticCorrections() {
@@ -542,23 +657,56 @@ const currentSelectionPromptCategory = ref('');
 const fileInfo = ref(null);
 const fileInfoHover = useElementHover(fileInfo)
 
-computed(() => {
-  const prompts = promptStore.selectionPrompts.filter(p => promptStore.canPrompt(p)).map(p => p.category ?? "");
+const confirmationWidgetData = computed(() => aiAgentStore.confirmationWidgetData);
 
-  return [...new Set(prompts)];
-});
-computed(() => {
-  const prompts = promptStore.insertPrompts.filter(p => promptStore.canPrompt(p)).map(p => p.category ?? "");
+const shouldShowDefaultBubbleMenu = ({ editor, view, state, from, to }) => {
+  const { selection } = state;
+  const { empty } = selection;
 
-  return [...new Set(prompts)];
-});
+  if(empty || !selection) {
+    return false;
+  }
+
+  // Hide default bubble menu only if current selection overlaps with paragraph that has pending confirmation
+  if (!aiAgentStore.projectAgentUserAborted && confirmationWidgetData.value && confirmationWidgetData.value.paragraphRange) {
+    const targetRange = confirmationWidgetData.value.paragraphRange;
+
+    // Simplified overlap detection: ranges overlap if they're NOT completely separate
+    // Two ranges are separate if: from >= targetRange.to OR to <= targetRange.from
+    // So they overlap if: !(from >= targetRange.to || to <= targetRange.from)
+    const overlapsWithPendingParagraph = !(from >= targetRange.to || to <= targetRange.from);
+
+    console.log('BubbleMenu overlap check:', {
+      selection: { from, to },
+      targetRange,
+      overlaps: overlapsWithPendingParagraph,
+    });
+
+    if (overlapsWithPendingParagraph) {
+      console.log('Hiding default bubble menu due to overlap with pending confirmation');
+      return false; // Hide default bubble menu for the paragraph with pending confirmation
+    }
+  }
+
+  console.log('Showing default bubble menu for selection:', { from, to });
+  return true; // Show default bubble menu for all other selections
+};
+
+// shouldShow function for Agent Confirmation BubbleMenu
+function shouldShowConfirmationWidget ({ editor, view, state, from, to }) {
+  if (!confirmationWidgetData.value || confirmationWidgetData.value.hidden || aiAgentStore.projectAgentUserAborted) {
+    return false;
+  }
+
+  const targetRange = confirmationWidgetData.value.paragraphRange;
+  // Show when selection overlaps with our target paragraph
+  const overlaps = (from >= targetRange.from && from <= targetRange.to) ||
+                   (to >= targetRange.from && to <= targetRange.to) ||
+                   (from <= targetRange.from && to >= targetRange.to);
+
+  return overlaps;
+}
 const emits = defineEmits(['update:modelValue']);
-computed(() => {
-  const prompts = promptStore.selectionPrompts.filter(p => promptStore.canPrompt(p)).filter(p => p.category === currentSelectionPromptCategory.value || (currentSelectionPromptCategory.value === '' && !p.category))
-  const grouping = groupBy(prompts, 'modelId');
-
-  return groupByToArray(grouping);
-});
 const writeClasses = computed(() => {
   return {
     'write-serif': (fileStore.selectedFile?.settings?.fontType ?? 'serif') === 'serif',
@@ -670,6 +818,9 @@ const editor = useEditor({
     Italic,
     Bold,
     HorizontalRule,
+    UniqueID.configure({
+      types: ['heading', 'paragraph'],
+    }),
     CodeBlock,
     CharacterCount.configure({
       limit: characterLimit.value,
@@ -688,6 +839,12 @@ const editor = useEditor({
     AutoCompletePlugin.configure({
       autocompleteValue: getAutocompleteResult,
       includeChildren: true,
+    }),
+    AgentDecorationPlugin.configure({
+      pendingClass: 'agent-pending',
+      processingClass: 'agent-processing',
+      completedClass: 'agent-completed',
+      errorClass: 'agent-error',
     }),
     Blockquote.configure({
       HTMLAttributes: {
@@ -951,7 +1108,7 @@ async function triggerQuickPrompt(type, command) {
 
     try {
       for (const prompt of prompts) {
-        const onOutput = (fullText, newText, isFinished, isError) => {
+        const onOutput = (fullText, newText, isFinished, isError, request, result) => {
           quickCommandTemporaryResult.value = fullText;
         };
 
@@ -981,7 +1138,7 @@ async function triggerQuickPrompt(type, command) {
 
     try {
       for (const prompt of prompts) {
-        const onOutput = (fullText, newText, isFinished, isError) => {
+        const onOutput = (fullText, newText, isFinished, isError, request, result) => {
           quickCommandTemporaryResult.value = fullText;
         };
 
@@ -1040,7 +1197,7 @@ async function runWordFinder(replace = true) {
 
       //console.log(message);
 
-      const onOutput = (fullText, newText, isFinished, isError) => {
+      const onOutput = (fullText, newText, isFinished, isError, request, result) => {
         //console.log(fullText);
       };
 
@@ -1220,6 +1377,57 @@ function onClickBelowEditor(event) {
   editor.value.chain().focus().run();
 }
 
+// Agent status computed properties
+const agentState = computed(() => aiAgentStore.agentState);
+const isAgentActive = computed(() => aiAgentStore.isAgentActive);
+const agentSelectorButton = ref();
+const agentSelectorButtonHovered = useElementHover(agentSelectorButton);
+
+const agentIcon = computed(() => {
+  switch (agentState.value) {
+    case 'processing':
+      return 'mdi-robot';
+    case 'waiting_for_user':
+      return 'mdi-robot-excited-outline';
+    default:
+      return 'mdi-robot-outline';
+  }
+});
+
+const agentButtonClass = computed(() => {
+  switch (agentState.value) {
+    case 'processing':
+      return 'text-orange';
+    case 'waiting_for_user':
+      return 'text-blue';
+    default:
+      return 'text-accent';
+  }
+});
+
+const agentTooltip = computed(() => {
+  switch (agentState.value) {
+    case 'processing':
+      return 'Agent is processing paragraphs...';
+    case 'waiting_for_user':
+      return 'Agent is waiting for your confirmation';
+    default:
+      return 'Run Project AI Agent';
+  }
+});
+
+async function runProjectAgent(agent) {
+  aiAgentStore.openProjectAgent(agent);
+}
+
+function stopAgentProcessing() {
+  try {
+    aiAgentStore.stopAgentProcessing();
+  } catch (error) {
+    console.error('Failed to stop agent processing:', error);
+  }
+}
+
 </script>
 
 <style lang="scss">
@@ -1255,5 +1463,19 @@ function onClickBelowEditor(event) {
 
 .floating-menu {
   display: flex;
+}
+
+.agent-confirmation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
 }
 </style>

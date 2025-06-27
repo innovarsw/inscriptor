@@ -8,6 +8,7 @@
       >
         <q-tab name="prompts" icon="mdi-creation-outline" label="Promps" />
         <q-tab name="models" icon="mdi-chip" label="Models" />
+        <q-tab name="agents" icon="mdi-robot" label="Agents" />
         <q-tab name="files" icon="mdi-file-outline" label="Files" />
         <q-tab name="apikeys" icon="mdi-cloud-outline" label="API Keys" />
       </q-tabs>
@@ -140,6 +141,10 @@
            <PagePropertiesSettings />
          </q-tab-panel>
 
+        <q-tab-panel name="agents">
+          <AgentSettings />
+        </q-tab-panel>
+
       </q-tab-panels>
     </div>
 
@@ -155,6 +160,7 @@
   import {useQuasar} from "quasar";
   import {useLayoutStore} from "stores/layout-store";
   import {useLocalDataStore} from "stores/localdata-store";
+  import AgentSettings from 'components/Common/Settings/AgentSettings.vue';
 
   const promptStore = usePromptStore();
   const layoutStore = useLayoutStore();
