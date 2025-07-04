@@ -510,3 +510,117 @@
 .prompt-text-editor {
 
 }
+
+// Agent decoration styles
+.agent-pending {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -4px;
+    width: 3px;
+    height: 100%;
+    background-color: #ffa726;
+    border-radius: 2px;
+    opacity: 0.7;
+  }
+}
+
+.agent-processing {
+  position: relative;
+  background-color: rgba(255, 167, 38, 0.05);
+  border-left: 3px solid #ffa726;
+  padding-left: 8px;
+  margin-left: -8px;
+
+  animation: agent-pulse 2s ease-in-out infinite;
+}
+
+.agent-streaming {
+  position: relative;
+  background-color: rgba(78, 93, 212, 0.05);
+  border-left: 3px solid #4e5dd4;
+  padding-left: 8px;
+  margin-left: -8px;
+
+  animation: agent-pulse-purple 2s ease-in-out infinite;
+}
+
+.agent-awaiting-confirmation {
+  position: relative;
+  background-color: rgba(78, 93, 212, 0.05);
+  border-left: 3px solid #4e5dd4;
+  padding-left: 8px;
+  margin-left: -8px;
+
+  // Subtle glow effect for awaiting confirmation
+  cursor: pointer;
+
+  animation: agent-pulse-purple 2s ease-in-out infinite;
+}
+
+
+// Dark mode support
+.dark-mode {
+  .agent-pending {
+    &::before {
+      background-color: #ffb74d;
+    }
+  }
+
+  .agent-processing {
+    background-color: rgba(255, 183, 77, 0.12);
+    border-left-color: #ffb74d;
+
+    &::before {
+      background: linear-gradient(45deg, #ffb74d, #ffcc02);
+    }
+  }
+
+  .agent-streaming {
+    background-color: rgba(186, 104, 200, 0.12);
+    border-left-color: #ba68c8;
+  }
+
+  .agent-awaiting-confirmation {
+    background-color: rgba(100, 181, 246, 0.12);
+    border-left-color: #4e5dd4;
+    box-shadow: 0 0 8px rgba(100, 181, 246, 0.2);
+  }
+
+}
+
+// Animations
+@keyframes agent-pulse {
+  0%, 100% {
+    background-color: rgba(255, 167, 38, 0.08);
+  }
+  50% {
+    background-color: rgba(255, 167, 38, 0.15);
+  }
+}
+
+@keyframes agent-pulse-purple {
+  0%, 100% {
+    background-color: rgba(78, 93, 212, 0.05);
+  }
+  50% {
+    background-color: rgba(78, 93, 212, 0.12);
+  }
+}
+
+@keyframes agent-shimmer {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}

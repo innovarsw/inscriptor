@@ -3,20 +3,19 @@
     <div class="text-primary text-subtitle2 q-px-sm q-pb-sm">
       <q-btn flat dense class="q-ml-xs full-width" no-caps @click="layoutStore.projectSelectionDialogOpen = true" v-if="fileStore.projectId">
         <div class="row full-width">
-          <div class="col-auto q-ml-xs">
+          <div class="col-auto q-ml-xs flex items-center">
             <template v-if="fileStore.projectSettings?.syncToCloud">
-              <q-spinner v-if="layoutStore.projectSyncIndicator" class="absolute" />
-              <q-icon v-else name="mdi-cloud-outline" class="absolute" />
+              <q-spinner v-if="layoutStore.projectSyncIndicator" class="" />
+              <q-icon v-else name="mdi-folder-outline" class="" />
             </template>
             <template v-else>
-              <q-icon name="mdi-folder-outline" class="absolute" />
+              <q-icon name="mdi-folder-outline" class="" />
             </template>
-
           </div>
           <div class="col">
             {{ currentProjectName ?? "(unknown project)" }}
           </div>
-          <div class="col-auto">
+          <div class="col-auto q-mr-lg">
             <q-btn flat dense @click.prevent="editProjectMetadata" icon="mdi-dots-vertical" padding="none none" size="12px"/>
           </div>
         </div>

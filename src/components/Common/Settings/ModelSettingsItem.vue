@@ -1,39 +1,17 @@
 <template>
-  <q-card class="q-mb-lg" :class="{ 'bg-red-1': !enabled }">
+  <q-card class="q-mb-lg" :class="{ 'bg-red-1': !enabled }" flat bordered>
     <q-card-section class="">
       <div class="row q-gutter-x-sm">
-        <div class="col-auto q-gutter-x-xs">
-          <!--<template v-if="modelDownloadable">
-            <q-chip v-if="!model.downloaded && !model.downloading" color="primary" clickable @click="promptStore.downloadModel(model)">Download</q-chip>
-            <q-chip v-if="model.downloaded && !model.downloading" color="positive" removable @remove="promptStore.undownloadModel(model)">Downloaded</q-chip>
-            <q-chip v-if="model.downloading" color="primary"><q-spinner></q-spinner>
-              &nbsp;Downloading...
-              <template v-if="model.progress">
-                {{ model.progress }}
-              </template>
-            </q-chip>
-          </template>-->
-
-        </div>
-
+        <div class="col-auto q-gutter-x-xs" />
         <div class="col q-ml-sm">
-
           <div>
             <span class="text-subtitle1 text-weight-medium">{{ name }}</span>
           </div>
           <div>
             <span class="text-caption">{{ description }}</span>
           </div>
-
-
         </div>
-
-        <!--<div class="col-auto flex items-center">
-          <q-checkbox v-model="enabled" label="Enabled" />
-        </div>-->
-
         <div class="col-auto row q-ml-sm" v-if="model.canBeDeleted"><q-btn dense icon="mdi-delete-outline" color="red" flat @click="promptStore.askRemoveModel(model)" label="" class="float-right"/></div>
-
         <div class="col-auto row q-ml-sm">
           <q-btn dense icon="mdi-arrow-up-thin" color="primary" flat @click="promptStore.pushModelOrder(model, -1)" label="" class="float-right"/>
           <q-btn dense icon="mdi-arrow-down-thin" color="primary" flat @click="promptStore.pushModelOrder(model, 1)" label="" class="float-right"/>
@@ -43,8 +21,8 @@
       </div>
 
       <q-slide-transition v-show="settingsExpanded">
-        <q-card bordered class="">
-          <q-card-section class="q-gutter-y-sm">
+        <q-card flat class="q-mt-sm">
+          <q-card-section class="q-gutter-y-sm q-py-sm q-px-sm">
             <div class="row q-gutter-x-sm">
               <div class="col"><q-input dense borderless :filled="canEditModelMeta" placeholder="Name" v-model="name" label="Visible Name" :readonly="!canEditModelMeta"/></div>
 
@@ -108,16 +86,12 @@
                     <span>{{ contextSize }} tokens</span> <HelpIcon tooltip="How many tokens can be sent to the AI model"></HelpIcon>
                   </div>
                 </div>
-
-
               </div>
             </div>
 
-
-
           </q-card-section>
 
-          <q-card-section class="q-gutter-y-sm">
+          <q-card-section class="q-gutter-y-sm q-px-sm">
             <template v-if="model.type === 'local' || model.type === 'client-ollama' || model.type === 'lmstudio'">
 
               <div class="row" v-if="false">
@@ -291,7 +265,6 @@
         </q-card>
       </q-slide-transition>
     </q-card-section>
-
   </q-card>
 </template>
 

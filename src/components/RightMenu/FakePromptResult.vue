@@ -61,7 +61,6 @@
 
 <style scoped>
 .prompt-actions{
-  background-color: white;
   z-index: 1000;
   height: 1.7rem;
 }

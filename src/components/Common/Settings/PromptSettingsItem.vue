@@ -2,7 +2,7 @@
   <q-card class="q-mb-md" :class="{ 'bg-red-1': !enabled }" bordered flat>
     <q-card-section class="q-px-md q-py-sm">
       <div class="row flex items-center">
-        <div class="col q-ml-sm">
+        <div class="col q-ml-sm q-py-sm">
           <div class="">
             <span class="text-subtitle1 text-weight-medium">{{ title }}</span>
           </div>
@@ -79,8 +79,8 @@
       </div>
 
       <q-slide-transition v-if="settingsExpanded">
-        <q-card bordered flat>
-          <q-card-section class="q-gutter-y-sm">
+        <q-card flat class="q-mt-sm">
+          <q-card-section class="q-gutter-y-sm q-py-sm q-px-sm">
             <div class="row">
               <div class="col-auto"><ColorPicker v-model="color"></ColorPicker></div>
               <div class="col-aut flex items-center bordered q-ml-sm">
@@ -140,7 +140,7 @@
 
           <q-separator class="q-my-sm"></q-separator>
 
-          <q-card-section class="q-gutter-y-md">
+          <q-card-section class="q-gutter-y-md q-px-sm">
             <div class="row">
               <div class="col">
                 <span class="text-subtitle2">Prompt AI Settings</span>
@@ -177,26 +177,15 @@
             </div>
 
             <div class="row q-gutter-x-md" v-if="showPromptToggles">
-              <div class="col-auto">
-                <q-checkbox v-model="hasExtraParameters" dense label="Extra Parameters" />
-                <HelpIcon :tooltip="$t('tooltips.parameters.extraParameters')"></HelpIcon>
-              </div>
-              <div class="col-auto">
+              <!--<div class="col-auto">
                 <q-checkbox v-model="overrideSystemPrompt" dense label="Override system prompt" />
-              </div>
+              </div>-->
               <div class="col-auto" v-if="model.args?.apiCallType === 'raw'">
                 <q-checkbox v-model="overridePromptFormat" dense label="Override prompt format" />
               </div>
               <div class="col-auto" v-if="prompt.info?.tags.includes('context') && canChangeContextTypes">
-                <q-checkbox v-model="overrideContexts" dense label="Change Context Types" />
+                <q-checkbox v-model="overrideContexts" dense label="Change Enabled / Disabled Context Types" />
               </div>
-              <div class="col-auto">
-                <q-checkbox v-model="hasExtendedChatMessages" dense label="Include more prompt messages" />
-              </div>
-              <div class="col-auto">
-                <q-checkbox v-model="hasResultsSeparator" dense label="Separator of results" />
-              </div>
-
             </div>
 
             <div class="row" v-if="overridePromptFormat">
@@ -227,7 +216,7 @@
                 <HelpIcon :tooltip="$t('tooltips.parameters.defaultContextTypes')"></HelpIcon>
               </div>
               <div class="col">
-                <q-select outlined filled dense label="Excluded Context" v-model="excludedContextTypes" :options="contextTypes" option-label="label" option-value="value" emit-value clearable multiple >
+                <q-select outlined filled dense label="Disallowed Context" v-model="excludedContextTypes" :options="contextTypes" option-label="label" option-value="value" emit-value clearable multiple >
                   <q-tooltip>
                     These context types will not be available when triggering the prompt, as they are already hardcoded within the prompt.
                   </q-tooltip>
@@ -257,9 +246,16 @@
                 </div>
               </div>
 
+              <div class="row">
+                <div class="col-auto">
+                  <q-checkbox v-model="hasExtendedChatMessages" dense label="Include more prompt messages" />
+                  <HelpIcon :tooltip="$t('tooltips.parameters.hasExtendedChatMessages')"></HelpIcon>
+                </div>
+              </div>
+
               <div class="row" v-if="hasExtendedChatMessages">
                 <div class="col">
-                  <CodeEditor v-model="assistantPrompt" :parameters="parameters" label="Assistant Prompt" />
+                  <CodeEditor v-model="assistantPrompt" :parameters="parameters" label="Assistant Prompt (#2)" />
                 </div>
                 <div class="col-auto items-center flex">
                   <HelpIcon :tooltip="$t('tooltips.parameters.userPrompt')"></HelpIcon>
@@ -268,7 +264,7 @@
 
               <div class="row" v-if="hasExtendedChatMessages">
                 <div class="col">
-                  <CodeEditor v-model="userPrompt2" :parameters="parameters" label="User Prompt" />
+                  <CodeEditor v-model="userPrompt2" :parameters="parameters" label="User Prompt (#2)" />
                 </div>
                 <div class="col-auto items-center flex">
                   <HelpIcon :tooltip="$t('tooltips.parameters.userPrompt')"></HelpIcon>
@@ -308,6 +304,13 @@
                 </div>
               </q-card-section>
             </q-card>
+
+            <div class="row">
+              <div class="col-auto">
+                <q-checkbox v-model="hasExtraParameters" dense label="Enable Extra Parameters" />
+                <HelpIcon :tooltip="$t('tooltips.parameters.extraParameters')"></HelpIcon>
+              </div>
+            </div>
 
             <q-card bordered flat v-if="hasExtraParameters" class="q-px-md bg-primary-1">
               <template v-if="parameters?.length > 0 ?? false">
@@ -399,26 +402,19 @@
 
                       <q-checkbox :model-value="parameter.required ?? false" v-on:update:model-value="updateParameter(prompt, parameter, {required: $event})" label="Required (parameter must be set before executing prompt)" />
                     </q-card-section>
-
-
                   </q-expansion-item>
                 </template>
-
-
-
-
               </template>
               <q-card-actions>
                 <q-btn label="Add parameter" outline icon="mdi-plus" flat dense @click="addParameter(prompt)"/>
               </q-card-actions>
             </q-card>
 
-
           </q-card-section>
 
-          <q-card-section class="q-pt-none" v-if="showAdvancedSettings">
-            <q-expansion-item label="Advanced" switch-toggle-side dense>
-              <q-card bordered>
+          <q-card-section class="q-pt-none q-mt-sm q-px-sm" v-if="showAdvancedSettings">
+            <q-expansion-item label="Advanced Prompt Parameters" dense icon="mdi-cog-outline">
+              <q-card class="q-py-sm">
                 <q-card-section class="q-gutter-y-md">
                   <div class="row q-gutter-x-md">
                     <div class="col-auto">
@@ -441,13 +437,14 @@
                       <q-checkbox v-model="overrideFrequencyPenalty" dense label="Override Frequency Penalty" />
                       <HelpIcon :tooltip="$t('tooltips.parameters.frequencyPenalty')"></HelpIcon>
                     </div>
-                  </div>
-
-                  <div class="row q-gutter-x-md">
                     <div class="col-auto">
-                      <div class="col-auto">
-                        <q-checkbox v-model="hiddenInPromptSelector" dense label="Hidden in prompt selector" />
-                      </div>
+                      <q-checkbox v-model="hasResultsSeparator" dense label="Separator of results" />
+                      <HelpIcon :tooltip="$t('tooltips.parameters.hasResultsSeparator')"></HelpIcon>
+                    </div>
+                    <div class="col" />
+                    <div class="col-auto">
+                      <q-checkbox v-model="hiddenInPromptSelector" dense label="Hidden in prompt selector" />
+                      <HelpIcon :tooltip="$t('tooltips.parameters.hiddenInPromptSelector')"></HelpIcon>
                     </div>
                   </div>
 
@@ -484,24 +481,55 @@
 
             </q-expansion-item>
 
-            <q-expansion-item label="Post Execute Actions" switch-toggle-side dense v-if="allowActions">
-              <q-card bordered>
+            <q-expansion-item :label="`AI Agents (${prompt.agents?.length ?? 0})`" dense v-if="allowAgents" icon="mdi-robot">
+              <q-card>
+                <q-card-section class="q-pb-none">
+                  <div class="text-caption text-grey">Tip: Define AI agents to further improve the output of this prompt before presenting it to you.</div>
+                  <div class="text-caption text-grey">Tip: Agents are executed from first to last.</div>
+                </q-card-section>
+                <q-card-section class="q-gutter-y-md" v-if="prompt.agents?.length > 0">
+                  <q-card v-for="(agent, index) in prompt.agents" :key="index">
+                    <q-card-section>
+                      <div class="row q-col-gutter-sm">
+                        <div class="col flex items-center">
+                          <q-select class="full-width" filled dense label="Select Agent" :model-value="availableAgents.find(a => a.value === agent.agentId)?.label ?? 'Unknown Agent'" :options="availableAgents" emit-value options-dense v-on:update:model-value="updateAgent(prompt, agent, {agentId: $event})" />
+                        </div>
+
+                        <div class="col-auto flex items-center">
+                          <q-btn icon="mdi-arrow-up" flat dense @click="moveAgentUp(prompt, agent)" class="q-mr-xs" :disable="index === 0"/>
+                          <q-btn icon="mdi-arrow-down" flat dense @click="moveAgentDown(prompt, agent)" class="q-mr-xs" :disable="index === prompt.agents.length - 1"/>
+                          <q-btn icon="mdi-delete-outline q-ml-sm q-mr-sm" color="red" flat dense @click="deleteAgent(prompt, agent)" label="" class=""/>
+                        </div>
+                      </div>
+                    </q-card-section>
+                  </q-card>
+                </q-card-section>
+                <q-card-actions>
+                  <q-btn label="Add agent" outline icon="mdi-plus" flat dense @click="addAgent(prompt)"/>
+                </q-card-actions>
+              </q-card>
+            </q-expansion-item>
+
+            <q-expansion-item :label="`Action Buttons (${prompt.actions?.length ?? 0})`" dense v-if="allowActions" icon="mdi-button-cursor">
+              <q-card>
                 <q-card-section class="q-pb-none">
                   <div class="text-caption text-grey">Tip: Define quick actions that can be run after your AI prompt is executed.</div>
                 </q-card-section>
                 <q-card-section class="q-gutter-y-md" v-if="prompt.actions?.length > 0">
                   <q-card v-for="(action, index) in prompt.actions" :key="index">
                     <q-card-section>
-                      <div class="row">
-                        <div class="col">
-                          <q-input dense filled label="Action Name" :model-value="action.title" v-on:update:model-value="updateAction(prompt, action, {title: $event})" hint=""/>
+                      <div class="row q-col-gutter-sm">
+                        <div class="col flex items-center">
+                          <q-input dense filled label="Action Name" :model-value="action.title" v-on:update:model-value="updateAction(prompt, action, {title: $event})" class="full-width"/>
                         </div>
-                        <div class="col-auto row">
+                        <div class="col">
+                          <q-select dense filled label="Action Type" :model-value="action.type" v-on:update:model-value="updateAction(prompt, action, {type: $event})" :options="actionTypes" emit-value>
+                          </q-select>
+                        </div>
+                        <div class="col-auto flex items-center">
                           <q-btn icon="mdi-delete-outline q-ml-sm q-mr-sm" color="red" flat dense @click="deleteAction(prompt, action)" label="" class=""/>
                         </div>
                       </div>
-                      <q-select dense filled label="Type" :model-value="action.type" v-on:update:model-value="updateAction(prompt, action, {type: $event})" :options="actionTypes" emit-value>
-                      </q-select>
                     </q-card-section>
 
                     <q-card-section v-if="action.type === 'Run Prompt'" >
@@ -530,15 +558,15 @@
               </q-card>
             </q-expansion-item>
 
-            <q-expansion-item label="Multiple Prompt Executions" switch-toggle-side dense v-if="allowMultipleRuns">
-              <q-card bordered>
+            <q-expansion-item label="Multiple Prompt Executions" dense v-if="allowMultipleRuns" icon="mdi-counter" >
+              <q-card>
                 <q-card-section class="q-pb-none">
                   <div class="text-caption text-grey">Tip: Execute prompt multiple times, using different AI models and settings, getting varied results at a single click, then select the reply you like the most.</div>
                 </q-card-section>
                 <q-card-section v-if="showPromptResultCount">
                   <div  class="row">
                     <div class="col">
-                      <q-input dense filled label="Promp Result Count" v-model="overridePromptTimes" type="number" :shadow-text="overridePromptTimes?.length === 0 ? 'Using default from model' : ''" />
+                      <q-input dense filled label="Promp Execute Count (execute same prompt multiple times)" v-model="overridePromptTimes" type="number" :shadow-text="overridePromptTimes?.length === 0 ? 'Using default from model' : ''" />
                     </div>
                     <div class="col-auto flex items-center">
                       <HelpIcon tooltip="How many times is the prompt executed. Use value > 1 to prompt multiple times so that you can choose the result you like the best."></HelpIcon>
@@ -549,7 +577,7 @@
                 <q-card-section>
                   <div class="row">
                     <div class="col">
-                      <q-checkbox v-model="enablePromptRuns" dense label="Enable Prompt Runs" />
+                      <q-checkbox v-model="enablePromptRuns" dense label="Enable Multiple Prompt Runs (with different parameters)" />
                     </div>
                     <div class="col-auto flex items-center">
                       <HelpIcon tooltip="Allows you to run multiple prompts when you trigger this prompt, chaining one after another. For example, one prompt can feed input into another prompt."></HelpIcon>
@@ -563,21 +591,21 @@
                   <div class="full-width" bordered>
                     <q-card v-for="(run, index) in prompt.runs" :key="index" class="q-mb-sm">
                       <q-card-section>
-                        <div class="row q-gutter-x-sm full-width">
+                        <div class="row q-col-gutter-sm full-width">
                           <div class="col-auto flex items-center q-mr-md">
-                            <q-input v-model="run.name" label="name" filled dense/>
+                            <q-input v-model="run.name" label="Run Name" filled dense/>
                           </div>
 
-                          <div class="col-auto column items-center">
+                          <div class="col-auto flex items-center">
                             <q-checkbox v-model="run.changeModel" label="Change model" dense />
                           </div>
 
-                          <div class="col-auto column items-center">
+                          <div class="col-auto flex items-center">
                             <q-checkbox v-model="run.changeTemperature" label="Change temperature" dense />
                           </div>
 
-                          <div class="col-auto column items-center">
-                            <q-checkbox v-model="run.changePrompts" label="Set prompts" dense />
+                          <div class="col-auto flex items-center">
+                            <q-checkbox v-model="run.changePrompts" label="Change prompts" dense />
                           </div>
 
                           <div class="col">
@@ -612,8 +640,8 @@
                       </q-card-section>
                     </q-card>
                   </div>
-                  <q-btn color="primary" icon="mdi-plus" label="Add run" @click="promptStore.addPromptRun(prompt)" class="q-mx-md q-mt-md q-mb-md"/>
                 </q-card-section>
+                  <q-btn flat dense icon="mdi-plus" label="Add run" @click="promptStore.addPromptRun(prompt)" class="q-mx-md q-mt-md q-mb-md"/>
               </q-card>
             </q-expansion-item>
 
@@ -701,6 +729,10 @@ import MultiplePromptsSelect from 'components/Common/MultiplePromptsSelect.vue';
     { label: "Save to Variable", value: "Save to Variable" },
   ];
 
+  const availableAgents = computed(() => {
+    return promptStore.promptAgents.map(a => ({label: a.title + ' (' + a.type + ')', value: a.id}));
+  });
+
   const contextTypes = computed(() => {
     const values = allPromptContexts;
 
@@ -763,6 +795,16 @@ import MultiplePromptsSelect from 'components/Common/MultiplePromptsSelect.vue';
   });
 
   const allowActions = computed(() => {
+    const model = promptStore.getModel(props.prompt.modelId);
+
+    if(model.args?.inferenceEngine === 'translation') return false;
+
+    if(props.prompt.promptType === 'chat') return false;
+
+    return true;
+  });
+
+  const allowAgents = computed(() => {
     const model = promptStore.getModel(props.prompt.modelId);
 
     if(model.args?.inferenceEngine === 'translation') return false;
@@ -1279,6 +1321,26 @@ const hasResultsSeparator = computed({
 
   function updateAction(prompt, action, args) {
     promptStore.updatePromptAction(prompt, action, args);
+  }
+
+  function addAgent(prompt) {
+    promptStore.addPromptPromptAgent(prompt);
+  }
+
+  function deleteAgent(prompt, agent) {
+    promptStore.deletePromptPromptAgent(prompt, agent);
+  }
+
+  function moveAgentUp(prompt, agent) {
+    promptStore.movePromptPromptAgentUp(prompt, agent);
+  }
+
+  function moveAgentDown(prompt, agent) {
+    promptStore.movePromptPromptAgentDown(prompt, agent);
+  }
+
+  function updateAgent(prompt, agent, args) {
+    promptStore.updatePromptPromptAgent(prompt, agent, args);
   }
 
   function setDynamicSettings(key, value) {

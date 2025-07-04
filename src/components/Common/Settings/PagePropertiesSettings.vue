@@ -1,6 +1,6 @@
 <template>
   <q-card flat>
-    <q-card-section class="q-gutter-y-sm">
+    <q-card-section class="q-gutter-y-sm no-padding">
       <div class="bordered">
         <q-expansion-item label="Prompts" caption="Predefine prompts for quick summarization, description generation, etc" v-model="layoutStore.settingsPredefinedPromptsOpened">
           <div class="q-py-sm q-gutter-y-md q-px-md">

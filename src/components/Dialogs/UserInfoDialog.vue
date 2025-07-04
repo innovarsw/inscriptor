@@ -16,7 +16,7 @@
 
       <q-card-section class="q-gutter-x-md no-padding" v-if="userData">
         <div class="row">
-          <div class="col-4 q-pa-md column bg-grey-1" v-if="!showBuyCredits">
+          <div class="col-4 q-pa-md column user-info-bg" v-if="!showBuyCredits">
             <div class="row q-mb-md">
               <span class="text-subtitle2 q-mr-sm">Email:</span>
               <span class="">{{ user.email }}</span>
@@ -174,21 +174,21 @@
             <div class="row q-mt-md q-mb-md q-gutter-x-lg justify-center" v-else>
 
               <div class="col flex justify-end">
-                <q-card style="max-width: 330px; min-height: 510px;" class="bg-blue-grey-1">
-                  <q-card-section class="bg-blue-grey-2">
+                <q-card style="max-width: 330px; min-height: 510px;" class="plan-card-bg">
+                  <q-card-section class="plan-card-header-bg">
                     <div class="flex items-center">
                       <span class="text-h6">Free plan</span>
                       <q-badge color="primary" class="q-ml-md" v-if="userData.subscriptionLevel === 0">Current</q-badge>
                     </div>
                     Free & Open Source. Consider Premium plan to support the project!
                   </q-card-section>
-                  <q-card-section class="bg-blue-grey-2 shadow-1">
+                  <q-card-section class="plan-card-header-bg shadow-1">
                     <div class="text-h6">Free</div>
                   </q-card-section>
-                  <q-list class="q-py-sm bg-blue-grey-1">
+                  <q-list class="q-py-sm plan-features-bg">
                     <q-item clickable>
                       <q-item-section avatar>
-                        <q-icon color="black" name="mdi-folder-outline" />
+                        <q-icon class="icon-dark-mode" name="mdi-folder-outline" />
                       </q-item-section>
 
                       <q-item-section>
@@ -198,7 +198,7 @@
                     </q-item>
                     <q-item clickable>
                       <q-item-section avatar>
-                        <q-icon color="black" name="mdi-folder-outline" />
+                        <q-icon class="icon-dark-mode" name="mdi-folder-outline" />
                       </q-item-section>
 
                       <q-item-section>
@@ -209,7 +209,7 @@
 
                     <q-item clickable>
                       <q-item-section avatar>
-                        <q-icon color="black" name="mdi-chip" />
+                        <q-icon class="icon-dark-mode" name="mdi-chip" />
                       </q-item-section>
 
                       <q-item-section>
@@ -220,7 +220,7 @@
 
                     <q-item clickable>
                       <q-item-section avatar>
-                        <q-icon color="black" name="mdi-cloud-outline" />
+                        <q-icon class="icon-dark-mode" name="mdi-cloud-outline" />
                       </q-item-section>
 
                       <q-item-section>
@@ -231,12 +231,12 @@
 
                     <q-item clickable>
                       <q-item-section avatar>
-                        <q-icon color="black" name="mdi-folder-outline" />
+                        <q-icon class="icon-dark-mode" name="mdi-folder-outline" />
                       </q-item-section>
 
                       <q-item-section>
                         <q-item-label>1 project on cloud</q-item-label>
-                        <q-item-label caption>max 30 files per project, limited size</q-item-label>
+                        <q-item-label caption>max 30 files per project</q-item-label>
                       </q-item-section>
                     </q-item>
 
@@ -283,8 +283,7 @@
                       </q-item-section>
 
                       <q-item-section>
-                        <q-item-label>Everything from Basic plan</q-item-label>
-                        <q-item-label caption class="text-inscriptorblue-light">Local projects, Local AI and more!</q-item-label>
+                        <q-item-label>Everything from Free plan</q-item-label>
                       </q-item-section>
                     </q-item>
 

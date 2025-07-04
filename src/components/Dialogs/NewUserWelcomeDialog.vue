@@ -1,6 +1,6 @@
 <template>
   <q-dialog v-model="layoutStore.newUserWelcomeDialog" persistent maximized transition-show="jump-up" transition-hide="jump-down" transition-duration="1500">
-    <div class="flex items-center justify-around bg-black" flat bordered>
+    <div class="flex items-center justify-around welcome-dialog-bg" flat bordered>
       <div class="flex text-aleo">
         <transition-group
           appear
