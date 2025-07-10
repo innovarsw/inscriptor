@@ -26,6 +26,7 @@ import {getProjectTemplate} from "src/common/utils/modelLibraryLoader";
 import {convertToFilesystemSafeName, downloadFile} from "src/common/utils/browserUtils";
 import {importFromMarketplace} from "src/common/utils/cmsUtils";
 import {useDebounceFn, useStorage} from "@vueuse/core";
+import { useFileSearch } from 'src/composables/useFileSearch';
 
 export const useFileStore = defineStore('files', {
   state: () => ({
@@ -361,14 +362,31 @@ export const useFileStore = defineStore('files', {
         this.setDirty(file);
       }
     },
-    queryFiles(query, files, includeChildren) {
+    queryFiles(query, files, includeChildren, isFuzzyQuery = false, fuzzyOptions = {}) {
+      // Handle fuzzy search
+      if (isFuzzyQuery && typeof query === 'string') {
+        const { searchFiles } = useFileSearch();
+        const results = searchFiles(
+          query,
+          fuzzyOptions.searchType || 'all',
+          true, // Enable fuzzy search
+          fuzzyOptions.maxResults || 50,
+          fuzzyOptions.threshold || 0.3,
+          true // Return raw results
+        );
+
+        // Extract original file objects from search results
+        return results.map(result => result);
+      }
+
+      // Original function-based query behavior (backward compatibility)
       const results = [];
       for (const file of files) {
         if(query(file)) {
           results.push(file);
         }
         if(includeChildren && file.children && file.children.length) {
-          results.push(...this.queryFiles(query, file.children, includeChildren));
+          results.push(...this.queryFiles(query, file.children, includeChildren, isFuzzyQuery, fuzzyOptions));
         }
       }
       return results;
@@ -420,6 +438,10 @@ export const useFileStore = defineStore('files', {
       file.state = state;
       this.setDirty(file);
     },
+    setFileSummary(file, synopsis) {
+      file.synopsis = synopsis;
+      this.setDirty(file);
+    },
     addVariable() {
       this.variables.push({
         title: 'new variable',
@@ -428,11 +450,6 @@ export const useFileStore = defineStore('files', {
     },
     removeVariable(index) {
       this.variables.splice(index, 1);
-    },
-    pageSuggestions(query) {
-      const queryFn = (file) => file.title.toLowerCase().startsWith(query.toLowerCase());
-
-      return this.queryFiles(queryFn, this.files, true);
     },
     stickyPrompt(prompt, file) {
       if(!file.settings) {

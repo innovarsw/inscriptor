@@ -5,6 +5,7 @@ import {getModelData} from "src/common/apiServices/modelService";
 import {useFileStore} from "stores/file-store";
 import {tutorial} from "src/common/utils/driverUtils";
 import {useQuasar} from "quasar";
+import { setCssVar } from 'quasar'
 
 export const useLayoutStore = defineStore('layout', {
   state: () => ({
@@ -48,6 +49,8 @@ export const useLayoutStore = defineStore('layout', {
     modelData: null,
 
     browserDialogOpen: false,
+
+    darkMode: false,
     browserDialogUrl: "",
 
     promptUiDialogOpen: false,
@@ -68,7 +71,6 @@ export const useLayoutStore = defineStore('layout', {
 
     desktopAppVersion: null,
 
-    darkMode: true,
 
     ctrlDown: false,
 
@@ -112,10 +114,47 @@ export const useLayoutStore = defineStore('layout', {
   }),
   getters: {
     getIsDragAndDropping: (state) => state.isDragAndDropping,
-
-    darkMode: (state) => useQuasar().dark.isActive,
   },
   actions: {
+    applyDarkMode($q, isDarkMode) {
+      // Apply theme classes to body element and set primary color
+      if (isDarkMode) {
+        document.body.classList.remove('day-mode');
+        document.body.classList.add('dark-mode');
+        // Set lighter primary color for dark mode
+        setCssVar('primary', '#7e7e8e');
+      } else {
+        document.body.classList.remove('dark-mode');
+        document.body.classList.add('day-mode');
+        // Set original primary color for light mode
+        setCssVar('primary', '#7e7e8e');
+      }
+    },
+    toggleDarkMode($q) {
+      $q.dark.toggle();
+      this.darkMode = $q.dark.isActive;
+      this.applyDarkMode($q, this.darkMode);
+      // Persist to localStorage
+      localStorage.setItem('inscriptor_darkMode', this.darkMode);
+    },
+    initializeDarkMode($q) {
+      const saved = localStorage.getItem('inscriptor_darkMode');
+      let isDarkMode;
+
+      if (saved !== null) {
+        isDarkMode = JSON.parse(saved);
+        $q.dark.set(isDarkMode);
+      } else {
+        // Default to system preference
+        isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        $q.dark.set(isDarkMode);
+        localStorage.setItem('inscriptor_darkMode', isDarkMode);
+      }
+
+      // Update store state
+      this.darkMode = isDarkMode;
+      this.applyDarkMode($q, isDarkMode);
+    },
     setLeftDrawerOpen(b) {
       this.leftDrawerOpen = b;
     },

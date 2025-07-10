@@ -100,7 +100,6 @@ onDeactivated(() => {
 
 <style lang="scss">
 .cm-editor {
-  background-color: rgba(0, 0, 0, 0.05);
   min-height: 120px;
   border-radius: 6px !important;
 }
@@ -121,27 +120,24 @@ onDeactivated(() => {
 }
 
 .cm-wrap {
-  border: 1px solid silver;
+  border: 1px solid;
 }
 
 .code-editor {
-  border: 0px solid #cbd5e0;
+  border: 0px solid;
   border-radius: 6px !important;
 }
 
 .cm-focused {
   outline-width: 0px !important;
-  background-color: #E4E4E4FF !important;
   transition: background-color 0.36s;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1)
 }
 
 .ͼ2 .cm-activeLine {
-  background-color: rgba(77, 123, 111, 0.0);
 }
 
 .ͼ2 .cm-activeLineGutter {
-  background-color: rgba(77, 123, 111, 0.1);
 }
 
 .cm-completionLabel {

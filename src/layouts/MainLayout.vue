@@ -5,37 +5,7 @@
       <AppToolbar />
     </q-header>
 
-    <q-drawer show-if-above v-model="layoutStore.leftDrawerOpen" side="left" behavior="desktop" :width="333" class="right-border">
-        <q-scroll-area class="fit left-menu-scroll"  >
-          <div class="q-pa-none">
-            <LeftMenuComponent />
-          </div>
-          <div class="absolute full-width" style="bottom: 0">
-            <q-separator />
-            <div class="row items-center q-pl-md inscriptor-insert-shadow-top" id="variables">
-              <div class="col">
-                <q-btn no-caps stack unelevated class="row text-primary q-my-sm cursor-pointer" icon="mdi-database-outline" label="Variables" @click="layoutStore.setVariableSettingsOpen(true)" />
-              </div>
-              <div class="col">
-                <q-btn no-caps stack unelevated class="row text-primary q-my-sm cursor-pointer" icon="mdi-cog" label="Settings" @click="layoutStore.setSettingsOpen(true)" id="settingsButton" />
-              </div>
-              <div class="col">
-                <q-btn no-caps stack unelevated class="row text-primary q-my-sm cursor-pointer" icon="mdi-history" label="History" @click="layoutStore.setConsoleOpen(!layoutStore.consoleOpen)"/>
-              </div>
-            </div>
-          </div>
-        </q-scroll-area>
-    </q-drawer>
-
-    <!--<q-drawer show-if-above v-model="layoutStore.rightDrawerOpen" side="right" bordered :width="400">
-      <q-scroll-area class="fit">
-        <div class="q-pa-sm">
-          <RightMenuComponent />
-        </div>
-      </q-scroll-area>
-    </q-drawer>-->
-
-    <q-page-container class="no-margin" style="padding-top: 0px">
+    <q-page-container class="" style="padding-top: 0px">
         <router-view/>
     </q-page-container>
 
@@ -73,7 +43,6 @@
 
 <script setup>
 import {computed, onBeforeMount, onMounted, watch} from 'vue';
-import LeftMenuComponent from 'components/LeftMenu/LeftMenuComponent.vue';
 import {useFileStore} from "stores/file-store";
 import AppToolbar from "components/Toolbar/AppToolbar.vue";
 import {useLayoutStore} from "stores/layout-store";

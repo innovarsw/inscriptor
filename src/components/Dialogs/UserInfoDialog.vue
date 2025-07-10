@@ -16,7 +16,7 @@
 
       <q-card-section class="q-gutter-x-md no-padding" v-if="userData">
         <div class="row">
-          <div class="col-4 q-pa-md column bg-grey-1" v-if="!showBuyCredits">
+          <div class="col-4 q-pa-md column user-info-bg" v-if="!showBuyCredits">
             <div class="row q-mb-md">
               <span class="text-subtitle2 q-mr-sm">Email:</span>
               <span class="">{{ user.email }}</span>
@@ -174,21 +174,21 @@
             <div class="row q-mt-md q-mb-md q-gutter-x-lg justify-center" v-else>
 
               <div class="col flex justify-end">
-                <q-card style="max-width: 330px; min-height: 510px;" class="bg-blue-grey-1">
-                  <q-card-section class="bg-blue-grey-2">
+                <q-card style="max-width: 330px; min-height: 510px;" class="plan-card-bg">
+                  <q-card-section class="plan-card-header-bg">
                     <div class="flex items-center">
                       <span class="text-h6">Free plan</span>
                       <q-badge color="primary" class="q-ml-md" v-if="userData.subscriptionLevel === 0">Current</q-badge>
                     </div>
                     Free & Open Source. Consider Premium plan to support the project!
                   </q-card-section>
-                  <q-card-section class="bg-blue-grey-2 shadow-1">
+                  <q-card-section class="plan-card-header-bg shadow-1">
                     <div class="text-h6">Free</div>
                   </q-card-section>
-                  <q-list class="q-py-sm bg-blue-grey-1">
+                  <q-list class="q-py-sm plan-features-bg">
                     <q-item clickable>
                       <q-item-section avatar>
-                        <q-icon color="black" name="mdi-folder-outline" />
+                        <q-icon class="icon-dark-mode" name="mdi-folder-outline" />
                       </q-item-section>
 
                       <q-item-section>
@@ -198,7 +198,7 @@
                     </q-item>
                     <q-item clickable>
                       <q-item-section avatar>
-                        <q-icon color="black" name="mdi-folder-outline" />
+                        <q-icon class="icon-dark-mode" name="mdi-folder-outline" />
                       </q-item-section>
 
                       <q-item-section>
@@ -209,7 +209,7 @@
 
                     <q-item clickable>
                       <q-item-section avatar>
-                        <q-icon color="black" name="mdi-chip" />
+                        <q-icon class="icon-dark-mode" name="mdi-chip" />
                       </q-item-section>
 
                       <q-item-section>
@@ -220,7 +220,7 @@
 
                     <q-item clickable>
                       <q-item-section avatar>
-                        <q-icon color="black" name="mdi-cloud-outline" />
+                        <q-icon class="icon-dark-mode" name="mdi-cloud-outline" />
                       </q-item-section>
 
                       <q-item-section>
@@ -231,12 +231,12 @@
 
                     <q-item clickable>
                       <q-item-section avatar>
-                        <q-icon color="black" name="mdi-folder-outline" />
+                        <q-icon class="icon-dark-mode" name="mdi-folder-outline" />
                       </q-item-section>
 
                       <q-item-section>
                         <q-item-label>1 project on cloud</q-item-label>
-                        <q-item-label caption>max 30 files per project, limited size</q-item-label>
+                        <q-item-label caption>max 30 files per project</q-item-label>
                       </q-item-section>
                     </q-item>
 
@@ -248,16 +248,16 @@
               </div>
 
               <div class="col">
-                <q-card class="shadow-16 bg-inscriptorblue" :class="{'primary-highlight': userData.subscriptionLevel === 1}" style="max-width: 330px;  min-height: 510px;">
-                  <q-card-section class="bg-inscriptorblue text-white">
+                <q-card class="shadow-16 bg-accent" :class="{'primary-highlight': userData.subscriptionLevel === 1}" style="max-width: 330px;  min-height: 510px;">
+                  <q-card-section class="bg-accent text-white">
                     <div class="flex items-center">
                       <q-icon name="mdi-crown-outline" class="q-mr-xs q-pt-xs" color="amber" size="sm" />
                       <span class="text-h6 q-ml-xs text-aleo">Inscriptor Premium</span>
-                      <q-badge color="amber" text-color="accent" class="q-ml-md" v-if="userData.subscriptionLevel === 1">Current</q-badge>
+                      <q-badge color="amber" text-color="grey-9" class="q-ml-md" v-if="userData.subscriptionLevel === 1">Current</q-badge>
                     </div>
                     Get the most from Inscriptor with cloud and monthly AI credits.
                   </q-card-section>
-                  <q-card-section class="bg-inscriptorblue text-white shadow-2">
+                  <q-card-section class="bg-accent text-white shadow-2">
                     <div class="row">
                       <div class="col">
                         <div class="text-h6">
@@ -271,20 +271,19 @@
                           :label="`Anually`"
                           v-model="yearly"
                         />
-                        <q-badge v-if="yearly" color="amber" class="q-mr-sm q-mt-xs text-accent" floating>Save 21%</q-badge>
+                        <q-badge v-if="yearly" color="amber" text-color="grey-9" class="q-mr-sm q-mt-xs" floating>Save 21%</q-badge>
                       </div>
                     </div>
 
                   </q-card-section>
-                  <q-list class="q-py-sm bg-inscriptorblue-dark text-inscriptorblue-light">
+                  <q-list class="q-py-sm bg-accent text-white">
                     <q-item clickable>
                       <q-item-section avatar>
                         <q-icon name="mdi-check" />
                       </q-item-section>
 
                       <q-item-section>
-                        <q-item-label>Everything from Basic plan</q-item-label>
-                        <q-item-label caption class="text-inscriptorblue-light">Local projects, Local AI and more!</q-item-label>
+                        <q-item-label>Everything from Free plan</q-item-label>
                       </q-item-section>
                     </q-item>
 
@@ -295,7 +294,7 @@
 
                       <q-item-section>
                         <q-item-label>Run cloud AI models</q-item-label>
-                        <q-item-label caption class="text-inscriptorblue-light">Enjoy your 2250 AI monthly credits that are included via Inscriptor AI Cloud</q-item-label>
+                        <q-item-label caption class="text-white">Enjoy your 2250 AI monthly credits that are included via Inscriptor AI Cloud</q-item-label>
                       </q-item-section>
                     </q-item>
 
@@ -306,7 +305,7 @@
 
                       <q-item-section>
                         <q-item-label>Access to advanced AI tools</q-item-label>
-                        <q-item-label caption class="text-inscriptorblue-light">Gain early access to all planned AI tools</q-item-label>
+                        <q-item-label caption class="text-white">Gain early access to all planned AI tools</q-item-label>
                       </q-item-section>
                     </q-item>
 
@@ -317,7 +316,7 @@
 
                       <q-item-section>
                         <q-item-label>Up to 20 projects on cloud</q-item-label>
-                        <q-item-label caption class="text-inscriptorblue-light">Synchronized across all devices</q-item-label>
+                        <q-item-label caption class="text-white">Synchronized across all devices</q-item-label>
                       </q-item-section>
                     </q-item>
 
@@ -328,18 +327,18 @@
 
                       <q-item-section>
                         <q-item-label class="text-bold">2250 AI Credits / Month</q-item-label>
-                        <q-item-label caption class="text-inscriptorblue-light">Each month, consume 2250 AI credits for free</q-item-label>
+                        <q-item-label caption class="text-white">Each month, consume 2250 AI credits for free</q-item-label>
                       </q-item-section>
                     </q-item>
 
                   </q-list>
-                  <q-card-actions v-if="userData.subscriptionLevel === 0" class="bg-inscriptorblue">
+                  <q-card-actions v-if="userData.subscriptionLevel === 0" class="bg-accent">
                     <q-btn color="accent" class="full-width" @click="buyPremium(yearly ? 'SubscriptionPremiumYearly' : 'SubscriptionPremium')">Subscribe</q-btn>
                   </q-card-actions>
-                  <q-card-actions v-else-if="!hasFreePremium"  class="bg-inscriptorblue text-white">
+                  <q-card-actions v-else-if="!hasFreePremium"  class="bg-accent text-white">
                     <q-btn flat unelevated class="full-width" icon="mdi-check" label="Subscribed"></q-btn>
                   </q-card-actions>
-                  <q-card-actions v-else  class="bg-inscriptorblue text-white">
+                  <q-card-actions v-else  class="bg-accent text-white">
                     <q-btn flat no-caps unelevated class="full-width" icon="mdi-check" label="Free for Early Adopters"></q-btn>
                   </q-card-actions>
                 </q-card>

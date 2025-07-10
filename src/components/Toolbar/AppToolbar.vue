@@ -1,6 +1,6 @@
 <template>
 
-  <q-bar data-tauri-drag-region class="titlebar q-px-none" style="background-color: #3f4aaa" >
+  <q-bar data-tauri-drag-region class="titlebar q-px-none titlebar-bg" >
 
     <div class="row full-width items-center" style="height: 32px;">
       <div class="col-3 col-md-3 col-lg-5 row items-center no-wrap">
@@ -38,7 +38,7 @@
           </q-tooltip>
         </q-btn>
 
-        <q-btn flat no-caps @click="layoutStore.feedbackWindowOpened = true" label="Feedback">
+        <q-btn flat icon="mdi-message-fast-outline" no-caps @click="layoutStore.feedbackWindowOpened = true" label="Feedback">
           <q-tooltip>
             Feedback
           </q-tooltip>
@@ -49,7 +49,7 @@
           icon="mdi-account-outline"
           class="sm-hide xs-hide"
           no-caps
-          :label="currentUser"
+          label="user@email.com"
           :loading="userSyncing"
           v-if="currentUser">
           <q-item clickable v-ripple @click="layoutStore.showUserDialog" dense v-if="currentUser !== 'Guest'">
@@ -67,6 +67,17 @@
               </q-item-label>
             </q-item-section>
           </q-item>
+
+          <q-item clickable v-ripple @click="layoutStore.toggleDarkMode($q)" dense>
+            <q-item-section avatar>
+              <q-icon :name="layoutStore.darkMode ? 'light_mode' : 'dark_mode'" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>
+                {{ layoutStore.darkMode ? 'Light Mode' : 'Dark Mode' }}
+              </q-item-label>
+            </q-item-section>
+          </q-item>
           <q-separator />
           <q-item clickable v-ripple @click="layoutStore.feedbackWindowOpened = true" dense>
             <q-item-section>
@@ -76,7 +87,7 @@
           <q-item clickable v-ripple dense v-if="roadmapUrl">
             <q-item-section>
               <q-item-label class="no-link-decoration">
-                <a :href="roadmapUrl" target="_blank" class="no-link-decoration text-black">
+                <a :href="roadmapUrl" target="_blank" class="no-link-decoration text-theme-primary">
                   Development Roadmap
                   <q-icon name="mdi-open-in-new" />
                 </a>
@@ -92,9 +103,9 @@
           <q-item clickable v-ripple dense>
             <q-item-section>
               <q-item-label>
-                <a href="https://discord.gg/fyjaq25ZHB" target="_blank" class="no-link-decoration text-black">
+                <a href="https://discord.gg/fyjaq25ZHB" target="_blank" class="no-link-decoration text-theme-primary">
                   Join Discord
-                  <span style="color: #5561f4" class="">
+                  <span class="discord-color">
                   <q-icon name="lab la-discord" /></span>
                 </a>
               </q-item-label>
@@ -128,8 +139,10 @@ import {useLayoutStore} from "stores/layout-store";
 import {computed} from "vue";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import {useCurrentUser, useFirebaseAuth} from "vuefire";
+import {useQuasar} from "quasar";
 
 const layoutStore = useLayoutStore();
+const $q = useQuasar();
 
 let appWindow = null;
 if(layoutStore.runsInDesktopApp()) {
@@ -158,7 +171,7 @@ async function signOut() {
   window.location.reload();
 }
 
-console.log(useCurrentUser());
+//console.log(useCurrentUser());
 
 const toggleLeftDrawer = () => {
   layoutStore.setLeftDrawerOpen(!layoutStore.leftDrawerOpen);

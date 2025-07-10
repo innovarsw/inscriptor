@@ -11,6 +11,19 @@
         <span class="text-caption">No results found</span>
       </q-card-section>
 
+      <q-card-section v-if="queryResults && queryResults.length > 0">
+        <q-list dense>
+          <q-item v-for="result in queryResults" :key="result.id" clickable dense @click="openFile(result, false)">
+            <q-item-section side>
+              <q-icon :name="result.file.originalFile.icon ?? 'mdi-file-document-outline'" :color="result.file.originalFile.state?.color" class="no-padding no-margin" size="17px" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label><div v-html="result.file.originalFile.title" /></q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-card-section>
+
       <q-card-section v-if="fileNameResults.length > 0 || fileContentResults.length > 0">
         <q-list dense>
           <q-item v-for="result in fileNameResults" :key="result.file.id" clickable dense @click="openFile(result.file, false)">
@@ -56,6 +69,8 @@ const fileContentResults = ref([]);
 
 const noResults = ref(false);
 
+const queryResults = ref(null);
+
 watch(searchQuery, (v) => {
   doSearch();
 })
@@ -67,6 +82,9 @@ function doSearch() {
     noResults.value = false;
     return;
   }
+
+  //TODO replace the methods below with this search
+  //queryResults.value = fileStore.queryFiles(searchQuery.value, fileStore.files, true, true, { threshold: 0 });
 
   function filterFilesByTitles(file, results) {
     const queryLower = searchQuery.value.toLowerCase();
@@ -137,11 +155,7 @@ function openFile(file) {
 }
 
 const input = ref('');
-
 </script>
 
 <style>
-
-
-
 </style>

@@ -98,6 +98,10 @@ body {
   overflow-y: auto;
 }
 
+.z-5 {
+  z-index: 5 !important;
+}
+
 .prompt-card-image {
 }
 
@@ -226,16 +230,12 @@ textarea::-webkit-scrollbar-button {
 
 .pattern-bg {
   z-index: -1;
-  background-color: #ffffff;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23dfe1f0' fill-opacity='0.4'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3Cpath d='M6 5V0H5v5H0v1h5v94h1V6h94V5H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 
 .ai-panel {
 }
 
 .ai-panel-solid {
-  background-color: #f8f8f8;
-  border-color: rgb(248, 248, 248);
   border-style: solid;
   border-width: 1px;
   border-radius: 12px;
@@ -267,6 +267,26 @@ textarea::-webkit-scrollbar-button {
   box-shadow: inset 0px -1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.bg-inscriptorblue-dark {
+  background-color: #191d43;
+}
+
+.bg-inscriptorblue {
+  background-color: #23285c;
+}
+
+.bg-inscriptorblue-light {
+  background-color: #3f48a8;
+}
+
+.text-inscriptorblue-dark {
+  color: #626bb8;
+}
+
+.text-inscriptorblue-light {
+  color: #cfd1e8;
+}
+
 .idea-card-rounded {
   background-color: #f8f8f8;
   border-color: rgb(228, 228, 228);
@@ -282,6 +302,11 @@ textarea::-webkit-scrollbar-button {
 
 .gradient-variation-1 {
   background: linear-gradient(135deg, #ffffff 80%, #ededf8 100%);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.gradient-variation-3 {
+  background: linear-gradient(135deg, #ededf8 10%, #ffffff 100%);
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 

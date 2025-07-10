@@ -55,7 +55,7 @@
 
                 <template v-if="viewThirdLevel">
                   <template v-for="nestedNestedChild in nestedChild.children ?? []" :key="nestedNestedChild.id">
-                    <q-card flat class="" style="background-color: rgba(63,73,169,0.05);">
+                    <q-card flat class="file-grid-nested">
                       <q-card-section class="text-subtitle2 q-mt-md q-pa-sm" >
 
                         <div class="row items-center cursor-pointer">

@@ -1,5 +1,5 @@
 <template>
-  <div class="left-border" id="rightPanel" style="height: calc(100vh - 104px); width: 100%">
+  <div class="" id="rightPanel" style="height: calc(100vh - 104px); width: 100%">
     <q-expansion-item
       label="File Details"
       icon="mdi-information-outline"
@@ -209,7 +209,7 @@
 
         </q-card>
         <PromptsTab v-if="layoutStore.currentRightMenuView === 'prompts'"/>
-        <ChatTab v-if="layoutStore.currentRightMenuView === 'chat'"/>
+        <AgentChatTab v-if="layoutStore.currentRightMenuView === 'agentChat'"/>
       </div>
 
 
@@ -223,7 +223,6 @@
   import {computed, ref, watch} from "vue";
   import PromptResult from "components/RightMenu/PromptResult.vue";
   import {useFileStore} from "stores/file-store";
-  import ChatTab from "components/RightMenu/ChatTab.vue";
   import PromptsTab from "components/RightMenu/PromptsTab.vue";
   import {useLayoutStore} from "stores/layout-store";
   import InputWithAi from "components/Common/InputWithAi.vue";
@@ -233,7 +232,8 @@
   import {useCurrentUser} from "vuefire";
   import {uint8ArrayToBase64} from "src/common/utils/textUtils";
   import {useElementHover} from "@vueuse/core";
-  import {chatTabId, promptTabId} from 'src/common/resources/tabs';
+  import {chatTabId, promptTabId, agentChatTabId} from 'src/common/resources/tabs';
+  import AgentChatTab from 'components/RightMenu/AgentChatTab.vue';
 
   const promptStore = usePromptStore();
   const fileStore = useFileStore();
@@ -257,7 +257,7 @@
 
   const views = [
     {label: 'Prompts', value: 'prompts', icon: 'mdi-creation-outline'},
-    {label: 'Chat', value: 'chat', icon: 'mdi-chat-outline'},
+    {label: 'Chat', value: 'agentChat', icon: 'mdi-robot'},
     {label: 'Analysis', value: 'analysis', icon: 'mdi-chart-timeline-variant-shimmer'},
   ];
 
@@ -270,6 +270,9 @@
     } else if(newValue === 'chat') {
       promptStore.analysisEnabled = false;
       currentTab.value = chatTabId;
+    } else if(newValue === 'agentChat') {
+      promptStore.analysisEnabled = false;
+      currentTab.value = agentChatTabId;
     }
   });
 

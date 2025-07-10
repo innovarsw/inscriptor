@@ -1,5 +1,5 @@
 <template>
-  <div class="items scrollable-file-mentions">
+  <div class="items scrollable-file-mentions file-mention-items">
     <q-list v-if="items && items.length" dense>
       <q-item
         clickable
@@ -54,13 +54,8 @@ function selectItem(index) {
   padding: 0.2rem;
   position: relative;
   border-radius: 0.5rem;
-  background: #FFF;
-  color: rgba(0, 0, 0, 0.8);
   overflow: hidden;
   font-size: 0.9rem;
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.05),
-    0px 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 .scrollable-file-mentions {

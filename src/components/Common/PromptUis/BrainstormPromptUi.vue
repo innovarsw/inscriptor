@@ -332,7 +332,7 @@ async function generate(replace = true) {
     }
     replaceVariables(newRequest, uiData.value.ideas);
 
-    const onOutput = (fullText, newText, isFinished, isError) => {
+    const onOutput = (fullText, newText, isFinished, isError, request, result) => {
       processOutput(fullText, uiData.value.pendingNewIdeas);
     };
 
@@ -456,7 +456,7 @@ async function generateSubIdeas(idea, replace = false) {
 
     idea.tempChildren = [];
 
-    const onOutput = (fullText, newText, isFinished, isError) => {
+    const onOutput = (fullText, newText, isFinished, isError, request, result) => {
       processOutput(fullText, idea.tempChildren);
     };
 
@@ -510,7 +510,7 @@ async function expandIdea(idea) {
 
     idea.descriptionAppend = '';
 
-    const onOutput = (fullText, newText, isFinished, isError) => {
+    const onOutput = (fullText, newText, isFinished, isError, request, result) => {
       idea.descriptionAppend = fullText;
     };
 
@@ -593,7 +593,7 @@ async function replyToIdea(idea, message) {
     // We'll store the AI's response here temporarily
     let aiResponse = '';
 
-    const onOutput = (fullText, newText, isFinished, isError) => {
+    const onOutput = (fullText, newText, isFinished, isError, request, result) => {
       aiResponse = fullText;
     };
 
@@ -656,7 +656,7 @@ async function generateSimilarIdeas(idea, replace = false) {
 
     idea.tempChildren = [];
 
-    const onOutput = (fullText, newText, isFinished, isError) => {
+    const onOutput = (fullText, newText, isFinished, isError, request, result) => {
       processOutput(fullText, uiData.value.pendingNewIdeas);
     };
 
@@ -1079,7 +1079,6 @@ defineExpose({
   }
 
   .pinned-ideas-section {
-    background-color: rgba(0, 0, 0, 0.02);
     border-radius: 22px;
     padding: 8px;
     margin-bottom: 16px;
@@ -1109,14 +1108,12 @@ defineExpose({
   }
 
   .disliked-column .column-content {
-    background-color: rgba(0, 0, 0, 0.02);
   }
 
   .neutral-column .column-content {
   }
 
   .liked-column .column-content {
-    background-color: rgba(82, 91, 177, 0.04);
   }
 
   /* Add media queries for responsive column adjustment */

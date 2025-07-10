@@ -75,7 +75,7 @@
 
       <div class="col">
         <div class="full-width" style="position: absolute; bottom: 0; right: 0; z-index: 1000" >
-          <div class="q-mr-lg bg-white">
+          <div class="q-mr-lg bg-theme-primary">
             <div class="" >
 
               <div class="text-caption q-pa-md q-pb-sm q-pt-sm text-grey-7 left-border" v-if="results.length === 0">
@@ -101,7 +101,7 @@
                 <div class="col-auto q-ml-sm">
                   <div class="column">
                     <div class="col">
-                      <q-btn icon="mdi-send-outline" color="accent" @click="sendChat()" :disable="promptForChatId === null" />
+                      <q-btn icon="mdi-reply-outline" color="accent" @click="sendChat()" :disable="promptForChatId === null" />
                     </div>
                     <div class="col q-mt-md">
                       <q-btn flat icon="mdi-cog" @click="settingsOpen = !settingsOpen" />
@@ -115,10 +115,10 @@
                 <q-card-section v-if="settingsOpen" class="q-gutter-y-xs left-border">
                   <div class="row">
                     <div class="col q-mr-xs">
-                      <q-select v-model="modelForChatId" filled dense label="Model used for chat" :options="models" />
+                      <q-select v-model="modelForChatId" filled dense options-dense label="Model used for chat" :options="models" />
                     </div>
                     <div class="col q-ml-xs">
-                      <q-select v-model="promptForChatId" filled dense label="Prompt used for chat" :options="prompts" />
+                      <q-select v-model="promptForChatId" filled dense options-dense label="Prompt used for chat" :options="prompts" />
                     </div>
                   </div>
                   <div class="row q-gutter-x-xs">

@@ -20,7 +20,7 @@
       <q-separator />
 
       <q-card-actions align="right">
-        <q-btn icon="mdi-send-outline" label="Send" color="primary" @click="sendFeedback" :disable="!canSendFeedback" :loading="sent"/>
+        <q-btn icon="mdi-reply-outline" label="Send" color="primary" @click="sendFeedback" :disable="!canSendFeedback" :loading="sent"/>
       </q-card-actions>
     </q-card>
 

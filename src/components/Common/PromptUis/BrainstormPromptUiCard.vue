@@ -87,7 +87,7 @@
             <q-input v-model="replyMessage" label="Reply to this idea..." dense borderless class="full-width" autofocus @keyup.enter="$emit('reply-to-idea', idea, replyMessage); replyMessage = ''"/>
           </div>
           <div class="col-auto flex items-center q-ml-sm">
-            <q-btn @click="$emit('reply-to-idea', idea, replyMessage); replyMessage = ''" icon="mdi-send-outline" size="12px" :loading="idea.generating" color="grey-7" flat dense no-caps/>
+            <q-btn @click="$emit('reply-to-idea', idea, replyMessage); replyMessage = ''" icon="mdi-reply-outline" size="12px" :loading="idea.generating" color="grey-7" flat dense no-caps/>
           </div>
         </div>
       </q-card-actions>
@@ -152,12 +152,10 @@ defineEmits([
 <style scoped>
 .card {
   transition: transform 0.5s ease;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1) !important;
 }
 
 .liked-card {
   transform: scale(1.02);
-  background: linear-gradient(135deg, #ededf8 85%, #d9dcf3 100%);
 }
 
 .disliked-card {
@@ -166,29 +164,23 @@ defineEmits([
 }
 
 .neutral-card {
-  background-color: #f8f8f8;
 }
 
 
 /* Subtle gradient background variations for neutral cards */
 .variation-0 {
-  background: linear-gradient(135deg, #ffffff 80%, #ededf8 100%);
 }
 
 .variation-1 {
-  background: linear-gradient(135deg, #ffffff 80%, #edf6f8 100%);
 }
 
 .variation-2 {
-  background: linear-gradient(135deg, #ffffff 80%, #f3f8ed 100%);
 }
 
 .variation-3 {
-  background: linear-gradient(135deg, #ffffff 80%, #f8f5ed 100%);
 }
 
 .variation-4 {
-  background: linear-gradient(135deg, #ffffff 80%, #f4edf8 100%);
 }
 
 .removing-card {
